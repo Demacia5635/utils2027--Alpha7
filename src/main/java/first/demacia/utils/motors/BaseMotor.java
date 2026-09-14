@@ -2,10 +2,7 @@ package first.demacia.utils.motors;
 
 import java.util.function.Supplier;
 import org.wpilib.math.util.MathUtil;
-import org.wpilib.util.sendable.Sendable;
-import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.smartdashboard.SendableChooser;
-import org.wpilib.smartdashboard.SmartDashboard;
+
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.RunCommand;
 import org.wpilib.command2.Command;

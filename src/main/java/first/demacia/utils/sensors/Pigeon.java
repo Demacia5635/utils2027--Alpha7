@@ -7,7 +7,6 @@ import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.Timer;
 
 import first.demacia.utils.Data;

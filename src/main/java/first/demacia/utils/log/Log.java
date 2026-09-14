@@ -5,16 +5,11 @@
 package first.demacia.utils.log;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
-import org.wpilib.networktables.NTSendable;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
-import org.wpilib.util.sendable.Sendable;
 import com.ctre.phoenix6.StatusSignal;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.DataLogManager;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.SubsystemBase;
@@ -22,9 +17,14 @@ import org.wpilib.datalog.DataLog;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.DriverStation;
 import org.wpilib.driverstation.MatchType;
 import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.util.Alert.Level;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.Tunables;
+import org.wpilib.tunable.TunableBoolean;
+import org.wpilib.command2.button.Trigger;
 
 import first.demacia.utils.Data;
 import first.demacia.utils.RobotCommon;
@@ -55,7 +55,6 @@ public class Log extends SubsystemBase {
     LOG_AND_NT
   } 
 
-  private static final Map<String, DashboardBuilder> builders = new HashMap<>();
 
   /** Singleton instance of the LogManager */
   private static Log logManager;
@@ -93,8 +92,13 @@ public class Log extends SubsystemBase {
     activeConsole = new ArrayList<>();
     log("log manager is ready");
 
-    SmartDashboard.putData("sysID/sysidCommand", new SysidCommand());
-    SmartDashboard.putData("replay/LoadLatestLog", new LogReplayCommand());
+     TunableBoolean runSysidTrigger = Tunables.addBoolean("sysID/sysidCommand", false);
+    new Trigger(runSysidTrigger).onTrue(
+        new SysidCommand().andThen(() -> runSysidTrigger.set(false)));
+
+    TunableBoolean loadLatestLogTrigger = Tunables.addBoolean("replay/LoadLatestLog", false);
+    new Trigger(loadLatestLogTrigger).onTrue(
+        new LogReplayCommand().andThen(() -> loadLatestLogTrigger.set(false)));
     RobotCommon.init();
   }
 
@@ -195,20 +199,11 @@ public class Log extends SubsystemBase {
     if (groupStringEntry != null) {
       groupStringEntry.log();
     }
-    for (DashboardBuilder builder : builders.values()) {
-      builder.pollInputs();
-      builder.update();
-    }
     
   }
-    public static void putData(String key, Sendable sendable) {
-      DashboardBuilder builder = builders.computeIfAbsent(key, DashboardBuilder::new);
-      if (sendable instanceof NTSendable ntSendable) {
-        ntSendable.initSendable(builder);
-      } else {
-        sendable.initSendable(builder);
-      }
-    }
+    public static void putData(String key, ComplexTunable tunable) {
+    Tunables.publish(key, tunable);
+  }
 
   /**
    * Starts building a new log entry from Phoenix6 StatusSignals.

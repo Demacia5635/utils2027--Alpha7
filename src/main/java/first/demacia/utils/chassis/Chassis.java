@@ -17,7 +17,6 @@ import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
 import org.wpilib.system.Timer;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.framework.RobotBase;

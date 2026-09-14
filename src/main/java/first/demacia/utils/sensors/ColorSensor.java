@@ -1,13 +1,11 @@
 package first.demacia.utils.sensors;
 import org.wpilib.util.Color;
-import org.wpilib.util.sendable.SendableBuilder;
 
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
 
 import org.wpilib.hardware.bus.I2C;
-import org.wpilib.smartdashboard.SmartDashboard;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
 import first.demacia.utils.log.Log.LogLevel;

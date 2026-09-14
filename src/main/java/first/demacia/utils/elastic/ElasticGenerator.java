@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.wpilib.net.WebServer;
 import org.wpilib.networktables.NetworkTableInstance;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.Filesystem;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.framework.RobotBase;

@@ -1,8 +1,6 @@
 package first.demacia.utils.mechanisms;
 
-import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.smartdashboard.SendableChooser;
-import org.wpilib.smartdashboard.SmartDashboard;
+
 import first.demacia.utils.log.Log;
 import first.demacia.utils.motors.MotorInterface;
 import first.demacia.utils.sensors.SensorInterface;

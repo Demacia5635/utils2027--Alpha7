@@ -1,7 +1,6 @@
 package first.demacia.utils.leds;
 
 import org.wpilib.util.Color;
-import org.wpilib.util.sendable.SendableBuilder;
 import org.wpilib.command2.SubsystemBase;
 
 /**Strip of led */
@@ -129,4 +128,5 @@ public class LedStrip extends SubsystemBase{
     
     // builder.addStringArrayProperty("Colors", this::getColorsAsHex, null);
   }
+ 
 }

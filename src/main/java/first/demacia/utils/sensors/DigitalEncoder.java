@@ -2,13 +2,11 @@ package first.demacia.utils.sensors;
 
 import java.util.function.Supplier;
 
-import org.wpilib.util.sendable.SendableBuilder;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
 import first.demacia.utils.log.Log.LogLevel;
 
 import org.wpilib.hardware.rotation.DutyCycleEncoder;
-import org.wpilib.smartdashboard.SmartDashboard;
 
 /**
  * Digital duty-cycle encoder wrapper (e.g., REV Through Bore in digital mode).

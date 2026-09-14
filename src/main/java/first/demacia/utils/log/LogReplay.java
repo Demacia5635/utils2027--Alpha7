@@ -3,17 +3,15 @@ package first.demacia.utils.log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-
-import org.wpilib.util.sendable.Sendable;
-import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.smartdashboard.SmartDashboard;
 import first.demacia.utils.log.Log.LogLevel;
 import first.demacia.utils.log.LogReader.Entry;
 import first.demacia.utils.log.LogReader.EntryPoint;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.Tunables;
 
-public class LogReplay implements Sendable {
+import org.wpilib.tunable.TunableTable;
+public class LogReplay implements ComplexTunable {
     public static LogReplay instance;
-    
     private double time = 0.0;
     private static long minTime = 0;
     private static long maxTime = 0;
@@ -103,7 +101,7 @@ public class LogReplay implements Sendable {
     public static void init() {
         if (instance == null) {
             instance = new LogReplay();
-            SmartDashboard.putData("replay", instance);
+            Tunables.publish("replay", instance);
         }
     }
 
@@ -181,8 +179,8 @@ public class LogReplay implements Sendable {
         }
     }
 
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("time", () -> time, LogReplay::setReplayTime);
+      @Override
+    public void publishTunable(TunableTable table) {
+    table.publishDouble("time", () -> time, LogReplay::setReplayTime);
     }
 }

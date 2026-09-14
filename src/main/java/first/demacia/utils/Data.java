@@ -4,7 +4,6 @@ package first.demacia.utils;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
-
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
 

@@ -2,9 +2,7 @@ package first.demacia.utils.sensors;
 
 import java.util.function.Supplier;
 
-import org.wpilib.util.sendable.SendableBuilder;
 import org.wpilib.hardware.discrete.DigitalInput;
-import org.wpilib.smartdashboard.SmartDashboard;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
 import first.demacia.utils.log.Log.LogLevel;

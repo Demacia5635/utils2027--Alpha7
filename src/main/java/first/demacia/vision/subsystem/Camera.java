@@ -11,7 +11,6 @@ import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableEntry;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
@@ -20,6 +19,9 @@ import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
 import first.demacia.vision.CameraConfig;
 import first.demacia.vision.VisionConstants;
+import org.wpilib.tunable.Tunables;
+import org.wpilib.tunable.TunableBoolean;
+import org.wpilib.command2.button.Trigger;
 
 import static first.demacia.vision.VisionConstants.*;
 
@@ -67,21 +69,34 @@ public class Camera extends SubsystemBase {
     latency = 0;
     field = new Field2d();
     pipeEntry = Table.getEntry("pipeline");
-    // LogManager.addEntry(camera.getName()+"dist", this::getDistFromCamera).withLogLevel(LogLevel.LOG_AND_NT_NOT_IN_COMP).build();
-    // LogManager.addEntry(camera.getName()+"dist ty", this::getDistanceFromTy).withLogLevel(LogLevel.LOG_AND_NT_NOT_IN_COMP).build();
+    // LogManager.addEntry(camera.getName()+"dist",
+    // this::getDistFromCamera).withLogLevel(LogLevel.LOG_AND_NT_NOT_IN_COMP).build();
+    // LogManager.addEntry(camera.getName()+"dist ty",
+    // this::getDistanceFromTy).withLogLevel(LogLevel.LOG_AND_NT_NOT_IN_COMP).build();
     Log.putData("tags/" + cameraConfig.getName() + "/" + cameraConfig.getName() + " see tag", () -> isSeeTag());
 
-    SmartDashboard.putData("tags/" + cameraConfig.getName() + "/" + "field-tag " + cameraConfig.getName(), field);
-    SmartDashboard.putData("tags/" + cameraConfig.getName() + "/" + "setTo3d " + cameraConfig.getName(),
-        new InstantCommand(() -> setDimension(true)).ignoringDisable(true));
-    SmartDashboard.putData("tags/" + cameraConfig.getName() + "/" + "setTo2d " + cameraConfig.getName(),
-        new InstantCommand(() -> setDimension(false)).ignoringDisable(true));
-    SmartDashboard.putData("chassis/reset gyro by camera " + cameraConfig.getName(),
+    Tunables.publish("tags/" + cameraConfig.getName() + "/" + "field-tag " + cameraConfig.getName(), field);
+    TunableBoolean setTo3dTrigger = Tunables.addBoolean(
+        "tags/" + cameraConfig.getName() + "/" + "setTo3d " + cameraConfig.getName(), false);
+    new Trigger(setTo3dTrigger).onTrue(
+        new InstantCommand(() -> setDimension(true)).ignoringDisable(true)
+            .andThen(() -> setTo3dTrigger.set(false)));
+
+    TunableBoolean setTo2dTrigger = Tunables.addBoolean(
+        "tags/" + cameraConfig.getName() + "/" + "setTo2d " + cameraConfig.getName(), false);
+    new Trigger(setTo2dTrigger).onTrue(
+        new InstantCommand(() -> setDimension(false)).ignoringDisable(true)
+            .andThen(() -> setTo2dTrigger.set(false)));
+
+    TunableBoolean resetGyroTrigger = Tunables.addBoolean(
+        "chassis/reset gyro by camera " + cameraConfig.getName(), false);
+    new Trigger(resetGyroTrigger).onTrue(
         Commands.sequence(
             new InstantCommand(() -> changePipeline(5)).ignoringDisable(true),
             new InstantCommand(() -> Chassis.getInstance().setYaw(getRobotAngle())).ignoringDisable(true),
-            new InstantCommand(() -> changePipeline(0)).ignoringDisable(true)).ignoringDisable(true));
-
+            new InstantCommand(() -> changePipeline(0)).ignoringDisable(true))
+            .ignoringDisable(true)
+            .andThen(() -> resetGyroTrigger.set(false)));
     ElasticGenerator.getInstance().registerTag(this);
   }
 
@@ -166,31 +181,33 @@ public class Camera extends SubsystemBase {
 
   // public double getDistFromCamera() {
 
-  //   alpha = Math.abs(camToTagPitch + camera.getPitch()) * Math.abs(Math.cos(Math.toRadians(camToTagYaw + camera.getYaw())));
-  //   dist = (Math.abs(height - camera.getHeight())) / (Math.tan(Math.toRadians(alpha)));
-  //   return dist;
+  // alpha = Math.abs(camToTagPitch + camera.getPitch()) *
+  // Math.abs(Math.cos(Math.toRadians(camToTagYaw + camera.getYaw())));
+  // dist = (Math.abs(height - camera.getHeight())) /
+  // (Math.tan(Math.toRadians(alpha)));
+  // return dist;
   // }
-  public double getDistanceFromTy(){
-    if(id < 0){
+  public double getDistanceFromTy() {
+    if (id < 0) {
       return 0.0;
     }
-    double deltaHeight = TAG_HEIGHT[(int)id] - camera.getHeight();
+    double deltaHeight = TAG_HEIGHT[(int) id] - camera.getHeight();
     double alpha = Math.toRadians(camera.getPitch() + camToTagPitch);
     double distance = Math.abs(deltaHeight / Math.tan(alpha));
 
     return distance;
   }
+
   public double getDistFromCamera() {
-    if(id < 0){
+    if (id < 0) {
       return 0.0;
     }
 
-    double deltaHeight = TAG_HEIGHT[(int)id] - camera.getHeight();
+    double deltaHeight = TAG_HEIGHT[(int) id] - camera.getHeight();
     double alpha = Math.toRadians(camera.getPitch() + camToTagPitch);
     double distance = Math.abs(deltaHeight / Math.tan(alpha)) / Math.cos((Math.toRadians(camToTagYaw)));
 
-
-    return distance;    
+    return distance;
   }
 
   private void crop() {

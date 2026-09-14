@@ -1,15 +1,15 @@
 package first.demacia.utils;
 
-import org.wpilib.util.sendable.Sendable;
-import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.TunableTable;
+import org.wpilib.tunable.Tunables;
 
-public class RobotCommon implements Sendable {
+public class RobotCommon implements ComplexTunable {
     private static boolean isRed = true;
     private static boolean isComp = false;
 
     static {
-        SmartDashboard.putData("RC", new RobotCommon());
+        Tunables.publish("RC", new RobotCommon());
     }
 
     public static void init() {}
@@ -30,10 +30,10 @@ public class RobotCommon implements Sendable {
         isComp = newIsComp;
     }
 
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("RobotCommon");
-        builder.addBooleanProperty("is red", () -> getIsRed(), (val) -> setIsRed(val));
-        builder.addBooleanProperty("is comp", () -> getIsComp(), (val) -> setIsComp(val));
-    }
+ @Override
+public void publishTunable(TunableTable table) {
+    // builder.setSmartDashboardType("RobotCommon");// no idea on how to do that with new classes
+    table.publishBoolean("is red", RobotCommon::getIsRed, RobotCommon::setIsRed);
+    table.publishBoolean("is comp", RobotCommon::getIsComp, RobotCommon::setIsComp);
+}
 }

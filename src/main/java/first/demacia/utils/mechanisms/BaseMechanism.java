@@ -5,7 +5,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import org.wpilib.math.util.MathUtil;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
 import first.demacia.utils.elastic.ElasticGenerator;
@@ -25,7 +24,7 @@ import first.demacia.utils.sensors.SensorInterface;
  * </ul>
  * </p>
  */
-public class BaseMechanism extends SubsystemBase{
+public class BaseMechanism extends SubsystemBase {
 
     /**
      * Internal class to hold motor instance, limits, current wanted value, and calibration state.
