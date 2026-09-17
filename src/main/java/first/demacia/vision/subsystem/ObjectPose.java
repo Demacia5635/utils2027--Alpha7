@@ -12,13 +12,15 @@ import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
-import org.wpilib.util.sendable.SendableBuilder;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.TunableDouble;
+import org.wpilib.tunable.TunableTable;
+
 import first.demacia.vision.CameraConfig;
 
 // Subsystem that tracks and calculates the position of a vision target (object) on the field
-public class ObjectPose extends SubsystemBase {
+public class ObjectPose extends SubsystemBase implements ComplexTunable {
   private Translation2d robotToObject;
   private Translation2d cameraToObject;
   private Translation2d OriginToObject;
@@ -82,7 +84,7 @@ public class ObjectPose extends SubsystemBase {
    */
   public Pose2d getPose2d(){
     if(objectPose == null){
-      return Pose2d.kZero;
+      return Pose2d.ZERO;
     }
     return objectPose;
   }
@@ -122,7 +124,7 @@ public class ObjectPose extends SubsystemBase {
       OriginToObject = robotToObject.plus(robotCurrentPose.get().getTranslation());
     }
     else{
-      return Translation2d.kZero;
+      return Translation2d.ZERO;
     }
     return OriginToObject;
   }
@@ -131,10 +133,11 @@ public class ObjectPose extends SubsystemBase {
    * Configures the Shuffleboard/SmartDashboard display for this subsystem.
    * Adds the X and Y coordinates of the tracked object to the dashboard.
    */
+
   @Override
-  public void initSendable(SendableBuilder builder) {
-      builder.addDoubleProperty("object pos X:", this::getX, null);
-      builder.addDoubleProperty("object pos Y:", this::getY, null);
+  public void publishTunable(TunableTable table) {
+    table.publishDouble(getName() + " object pos X:", this::getX, null);
+    table.publishDouble(getName() + " object pos Y:", this::getY, null);
   }
 
   

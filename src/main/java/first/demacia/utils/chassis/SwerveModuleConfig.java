@@ -28,7 +28,7 @@ public class SwerveModuleConfig {
     public final CancoderConfig cancoderConfig;
     public double steerOffset = 0;
 
-    public Translation2d position = Translation2d.kZero;
+    public Translation2d position = Translation2d.ZERO;
 
     public double steerVelToDriveVel = 0;
 

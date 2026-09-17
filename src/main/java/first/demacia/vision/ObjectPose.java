@@ -12,7 +12,6 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.smartdashboard.SmartDashboard;
 
 // Subsystem that tracks and calculates the position of a vision target (object) on the field
 public class ObjectPose{
@@ -137,7 +136,7 @@ public class ObjectPose{
   public void update(){
     objectPose = chooseObjectPose();
     
-    if (!objectPose.equals(Pose2d.kZero)) {
+    if (!objectPose.equals(Pose2d.ZERO)) {
       field.setRobotPose(objectPose);
     }
   }
@@ -148,7 +147,7 @@ public class ObjectPose{
    */
   public Pose2d getPose2d() {
     if (objectPose == null) {
-      return Pose2d.kZero;
+      return Pose2d.ZERO;
     }
     return objectPose;
   }
@@ -187,7 +186,7 @@ public class ObjectPose{
       robotToObject = getRobotToObject().rotateBy(getRobotAngle.get());
       OriginToObject = robotToObject.plus(robotCurrentPose.get().getTranslation());
     } else {
-      return Translation2d.kZero;
+      return Translation2d.ZERO;
     }
     return OriginToObject;
   }

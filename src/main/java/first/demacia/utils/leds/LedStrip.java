@@ -119,14 +119,4 @@ public class LedStrip extends SubsystemBase{
     return ans;
   }
 
-  /**
-   * put the colors in network table
-   */
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    super.initSendable(builder);
-    
-    // builder.addStringArrayProperty("Colors", this::getColorsAsHex, null);
-  }
- 
 }

@@ -4,6 +4,9 @@ package first.demacia.utils.mechanisms;
 import first.demacia.utils.log.Log;
 import first.demacia.utils.motors.MotorInterface;
 import first.demacia.utils.sensors.SensorInterface;
+import org.wpilib.tunable.Selectable;
+import org.wpilib.tunable.TunableTable;
+import org.wpilib.tunable.ComplexTunable;
 
 /**
  * An extension of BaseMechanism that introduces the concept of States.
@@ -27,7 +30,7 @@ public class StateBaseMechanism extends BaseMechanism {
     }
 
     /** Chooser for selecting states via the Dashboard */
-    SendableChooser<MechanismState> stateChooser = new SendableChooser<>();
+    Selectable<MechanismState> stateChooser = new Selectable<>();
     
     /** The current active state */
     public MechanismState state;
@@ -84,18 +87,18 @@ public class StateBaseMechanism extends BaseMechanism {
      * @param enumClass The state Enum class
      */
     private void addNT(Class<? extends MechanismState> enumClass) {
-        stateChooser.addOption(TESTING_STATE.name(), TESTING_STATE);
-        stateChooser.setDefaultOption(IDLE_STATE.name(), IDLE_STATE);
+        stateChooser.add(TESTING_STATE.name(), TESTING_STATE);
+        stateChooser.addDefault(IDLE_STATE.name(), IDLE_STATE);
         state = IDLE_STATE;
         
         for (MechanismState state : enumClass.getEnumConstants()) {
-            stateChooser.addOption(state.name(), state);
+            stateChooser.add(state.name(), state);
         }
         
         // Listener to update the local state variable when dashboard selection changes
         stateChooser.onChange(state -> this.state = state);
         
-        SmartDashboard.putData(getName() + "/" + getName() + " State Chooser", stateChooser);
+        // SmartDashboard.putData(getName() + "/" + getName() + " State Chooser", stateChooser); TODO
 
         for (int i = 0; i < getState().getValues().length; i++){
             final int index = i;
@@ -113,18 +116,22 @@ public class StateBaseMechanism extends BaseMechanism {
             return;
         }
 
-        stateChooser.setDefaultOption(state.name(), state);
+        stateChooser.addDefault(state.name(), state);
     }
 
     /**
      * Initializes the Sendable data.
      * Adds the 'Test Values' array property to the dashboard so it can be edited live.
      */
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.addDoubleArrayProperty(getName() + " Test Values", () -> getTestValues(), testValues -> setTestValues(testValues));
-        builder.addStringProperty(getName() + " State", () -> (getState() == null)? "" : getState().name(), null);
-    }
+
+        // builder.addDoubleArrayProperty(getName() + " Test Values", () -> getTestValues(), testValues -> setTestValues(testValues));
+        // builder.addStringProperty(getName() + " State", () -> (getState() == null)? "" : getState().name(), null);
+  
+    // @Override TODO
+    // public void publishTunable(TunableTable table) {
+    //     super.publishTunable(table);
+    //     table.publish(getName() + " Test Values", () -> getTestValues(), testValues -> setTestValues(testValues));
+    // }
 
     /**
      * Manually sets the current state of the mechanism.

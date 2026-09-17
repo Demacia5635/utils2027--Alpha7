@@ -22,7 +22,7 @@ public class DemaciaKinematics {
     private SwerveModuleVelocity[] lastStates = new SwerveModuleVelocity[4];
 
     public DemaciaKinematics(Translation2d... modulePositionOnTheRobot) {
-        this.startRobotPosition = Pose2d.kZero;
+        this.startRobotPosition = Pose2d.ZERO;
         this.modulePositionOnTheRobot = modulePositionOnTheRobot;
         for (int i = 0; i < 4; i++) {
             swerveStates[i] = new SwerveModuleVelocity();

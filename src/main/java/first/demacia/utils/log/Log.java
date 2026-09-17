@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
-import com.ctre.phoenix6.StatusSignal;
+// import com.ctre.phoenix6.StatusSignal;
 import org.wpilib.system.DataLogManager;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.SubsystemBase;
@@ -213,10 +213,10 @@ public class Log extends SubsystemBase {
    * @param statusSignals The signals to log
    * @return A new LogEntryBuilder
    */
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, StatusSignal<T> statusSignal, boolean isRio) {
-    return putData(name, new StatusSignal[] {statusSignal}, LogLevel.LOG_AND_NT, "", true, isRio);
-  }
+  // @SuppressWarnings("unchecked")
+  // public static <T> LogEntry<T> putData(String name, StatusSignal<T> statusSignal, boolean isRio) {
+  //   return putData(name, new StatusSignal[] {statusSignal}, LogLevel.LOG_AND_NT, "", true, isRio);
+  // } TODO
 
   /**
    * Starts building a new log entry from Suppliers.
@@ -244,15 +244,15 @@ public class Log extends SubsystemBase {
     return putData(name, new Data[] {data}, LogLevel.LOG_AND_NT, "", true);
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, StatusSignal<T>[] statusSignals, LogLevel logLevel, String metaData, boolean isSeparated, boolean isRio) {
-    Data<T>[] data;
-    data = (Data<T>[]) new Data[statusSignals.length];
-    for (int i = 0; i < statusSignals.length; i++) {
-        data[i] = new Data<>(statusSignals[i], isRio);
-    }
-    return putData(name, data, logLevel, metaData, isSeparated);
-  }
+  // @SuppressWarnings("unchecked")
+  // public static <T> LogEntry<T> putData(String name, StatusSignal<T>[] statusSignals, LogLevel logLevel, String metaData, boolean isSeparated, boolean isRio) {
+  //   Data<T>[] data;
+  //   data = (Data<T>[]) new Data[statusSignals.length];
+  //   for (int i = 0; i < statusSignals.length; i++) {
+  //       data[i] = new Data<>(statusSignals[i], isRio);
+  //   }
+  //   return putData(name, data, logLevel, metaData, isSeparated);
+  // } TODO
 
   @SuppressWarnings("unchecked")
   public static <T> LogEntry<T> putData(String name, Supplier<T>[] suppliers, LogLevel logLevel, String metaData, boolean isSeparated) {

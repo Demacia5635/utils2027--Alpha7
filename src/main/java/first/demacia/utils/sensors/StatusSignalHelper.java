@@ -70,10 +70,10 @@ public class StatusSignalHelper {
      * @param lastValue Last known value (fallback)
      * @return Value in radians (0-2π range), or lastValue if read fails
      */
-    @SuppressWarnings("rawtypes")
-    public static double getStatusSignalWith2Pi(StatusSignal statusSignal, double lastValue) {
-        return getStatusSignal(statusSignal, lastValue, 2 * Math.PI);
-    }
+    // @SuppressWarnings("rawtypes") TODO
+    // public static double getStatusSignalWith2Pi(StatusSignal statusSignal, double lastValue) {
+    //     return getStatusSignal(statusSignal, lastValue, 2 * Math.PI);
+    // }
     
     /**
      * Gets status signal value without conversion.
@@ -84,8 +84,8 @@ public class StatusSignalHelper {
      * @param lastValue Last known value (fallback)
      * @return Current value, or lastValue if read fails
      */
-    @SuppressWarnings("rawtypes")
-    public static double getStatusSignalBasic(StatusSignal statusSignal, double lastValue) {
-        return getStatusSignal(statusSignal, lastValue, 1.0);
-    }
-}
+//     @SuppressWarnings("rawtypes") TODO
+//     public static double getStatusSignalBasic(StatusSignal statusSignal, double lastValue) {
+//         return getStatusSignal(statusSignal, lastValue, 1.0);
+//     }
+ }

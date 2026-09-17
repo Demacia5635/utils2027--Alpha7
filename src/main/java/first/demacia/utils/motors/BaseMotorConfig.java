@@ -1,7 +1,8 @@
 package first.demacia.utils.motors;
 
 import java.util.function.Consumer;
-import com.ctre.phoenix6.CANBus;
+// TODO: Restore when the CTRE Phoenix 6 vendordep is added.
+// TODO import com.ctre.phoenix6.CANBus;
 
 /**
  * Abstract base class for motor configurations using the Builder pattern.
@@ -20,7 +21,8 @@ public abstract class BaseMotorConfig<T extends BaseMotorConfig<T>> {
         Rio("rio"),
         CANIvore("canivore");
 
-        public final CANBus canbus;
+        // TODO: Resolve the missing CTRE Phoenix 6 CANBus type.
+        // TODO public final CANBus canbus;
 
         private Canbus(String name) {
             this.canbus = new CANBus(name);
