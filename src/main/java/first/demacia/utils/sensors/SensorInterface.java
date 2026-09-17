@@ -1,8 +1,6 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.util.sendable.Sendable;
-import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.util.sendable.SendableRegistry;
+
 
 /**
  * Base interface for all sensors.

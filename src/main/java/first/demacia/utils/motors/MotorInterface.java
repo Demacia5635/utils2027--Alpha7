@@ -1,8 +1,8 @@
 package first.demacia.utils.motors;
 
 import java.util.function.Supplier;
-import org.wpilib.util.sendable.Sendable;
-import org.wpilib.util.sendable.SendableRegistry;
+import org.wpilib.tunable.TunableRegistry;
+
 
 /**
  * Common interface for all motor controllers in the robot.

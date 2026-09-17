@@ -80,7 +80,7 @@ public class ObjectPose{
         return previousObjectPose;
       } else {
         SmartDashboard.putString("Target Status", "No Target");
-        return Pose2d.kZero;
+        return Pose2d.ZERO;
       }
     }
 
