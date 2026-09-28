@@ -9,6 +9,7 @@ import java.util.List;
 import org.wpilib.net.WebServer;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.system.Filesystem;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.util.Pair;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.framework.RobotBase;
@@ -133,11 +134,11 @@ public class ElasticGenerator {
                 StandardOpenOption.WRITE
             );
             
-            SmartDashboard.putString("elastic/Status", "Saved at: " + file.getAbsolutePath());
+           Telemetry.log("elastic/Status", "Saved at: " + file.getAbsolutePath());
             Log.log("Elastic layout saved successfully at: " + file.getAbsolutePath());  
         } catch (IOException e) {
             Log.log("Failed to save Elastic layout: " + e.getMessage());
-            SmartDashboard.putString("elastic/Status", "Failed to save: " + e.getMessage());
+           Telemetry.log("elastic/Status", "Failed to save: " + e.getMessage());
         }
     }
 

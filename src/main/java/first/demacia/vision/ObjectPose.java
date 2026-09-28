@@ -12,6 +12,7 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.telemetry.Telemetry;
 
 // Subsystem that tracks and calculates the position of a vision target (object) on the field
 public class ObjectPose{
@@ -76,10 +77,10 @@ public class ObjectPose{
     // Case 1: No current target detected
     if (!hasCurrentTarget) {
       if (hasPreviousTarget) {
-        SmartDashboard.putString("Target Status", "Using Previous (Lost)");
+        Telemetry.log("Target Status", "Using Previous (Lost)");
         return previousObjectPose;
       } else {
-        SmartDashboard.putString("Target Status", "No Target");
+        Telemetry.log("Target Status", "No Target");
         return Pose2d.ZERO;
       }
     }
@@ -107,23 +108,23 @@ public class ObjectPose{
 
       if (!previousInDeadzone && isSameTarget) {
         // Previous is NOT in deadzone and is the same target - use previous
-        SmartDashboard.putString("Target Status", "Using Previous (Current in Deadzone)");
+        Telemetry.log("Target Status", "Using Previous (Current in Deadzone)");
         return previousObjectPose;
       }
     }
 
     // Case 3: Use current target (it's good or we have no better option)
     if (currentInDeadzone) {
-      SmartDashboard.putString("Target Status", "Current (In Deadzone)");
+      Telemetry.log("Target Status", "Current (In Deadzone)");
     } else {
-      SmartDashboard.putString("Target Status", "Current (Good)");
+      Telemetry.log("Target Status", "Current (Good)");
     }
 
     // Update previous for next cycle
     previousObjectPose = currentObjectPose;
     hasPreviousTarget = true;
 
-    SmartDashboard.putNumber("Distance to Target", currentDistance);
+    Telemetry.log("Distance to Target", currentDistance);
     
     return currentObjectPose;
   }

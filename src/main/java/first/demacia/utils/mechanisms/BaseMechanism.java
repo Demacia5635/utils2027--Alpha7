@@ -5,6 +5,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import org.wpilib.math.util.MathUtil;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
 import first.demacia.utils.elastic.ElasticGenerator;
@@ -771,9 +772,9 @@ public class BaseMechanism extends SubsystemBase {
         }
 
         for (int i = 0; i < motorsAmount; i++){
-            SmartDashboard.putBoolean(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " has Calibrated", getIsCalibration(i));
-            SmartDashboard.putNumber(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " wanted value", motors.get(motorNames[i]).motor.getWantedValue());
-            SmartDashboard.putNumber(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " current Value", motors.get(motorNames[i]).motor.getCurrentVoltage());
+            Telemetry.log(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " has Calibrated", getIsCalibration(i));
+            Telemetry.log(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " wanted value", motors.get(motorNames[i]).motor.getWantedValue());
+            Telemetry.log(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " current Value", motors.get(motorNames[i]).motor.getCurrentVoltage());
         }
     }
 }
