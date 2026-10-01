@@ -1,7 +1,10 @@
 package first.demacia.utils.motors;
 
 import java.util.function.Consumer;
- import com.ctre.phoenix6.CANBus;
+
+import org.wpilib.hardware.bus.CANPort;
+
+import com.ctre.phoenix6.CANBus;
 
 /**
  * Abstract base class for motor configurations using the Builder pattern.
@@ -20,7 +23,7 @@ public abstract class BaseMotorConfig<T extends BaseMotorConfig<T>> {
         Rio("rio"),
         CANIvore("canivore");
 
-          public final CANBus canbus;
+        public final CANBus canbus;
 
         private Canbus(String name) {
             this.canbus = new CANBus(name);
@@ -32,19 +35,19 @@ public abstract class BaseMotorConfig<T extends BaseMotorConfig<T>> {
         TalonFX {
             @Override
             public MotorInterface create(BaseMotorConfig<?> config) {
-                return new TalonFXMotor((TalonFXConfig) config);
+                return new TalonFXMotor((TalonFXConfig)config);
             }
         },
         SparkMax {
             @Override
             public MotorInterface create(BaseMotorConfig<?> config) {
-                return new SparkMaxMotor((SparkMaxConfig) config);
+                return new SparkMaxMotor((SparkMaxConfig)config);
             }
         },
         SparkFlex {
             @Override
             public MotorInterface create(BaseMotorConfig<?> config) {
-                return new SparkFlexMotor((SparkFlexConfig) config);
+                return new SparkFlexMotor((SparkFlexConfig)config);
             }
         };
 
@@ -53,7 +56,8 @@ public abstract class BaseMotorConfig<T extends BaseMotorConfig<T>> {
 
     public int id;
     public Canbus canbus = Canbus.Rio;
-    public int canBusId;
+    public CANPort canPort = CANPort.CAN_D0;
+
     public MotorControllerType motorClass = MotorControllerType.TalonFX;
     public String name;
 
@@ -86,15 +90,15 @@ public abstract class BaseMotorConfig<T extends BaseMotorConfig<T>> {
     /**
      * Base constructor.
      * 
-     * @param name The name of the motor
-     * @param id   The device ID
-     * @param canBusId   The canBus ID
+     * @param name     The name of the motor
+     * @param id       The device ID
+     * @param canBusId The canBus ID
      */
-    public BaseMotorConfig(String name, int id, int canBusId) {
+    public BaseMotorConfig(String name, int id, CANPort canPort) {
         this.name = name;
         this.id = id;
-        this.canBusId = canBusId;
-    } 
+        this.canPort = canPort;
+    }
 
     /**
      * Base constructor with CAN bus.
@@ -125,6 +129,12 @@ public abstract class BaseMotorConfig<T extends BaseMotorConfig<T>> {
         return (T) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public T withCanPort(CANPort canPort) {
+        this.canPort = canPort;
+        return (T) this;
+    }
+    
     /**
      * Sets the voltage limits (symmetrical).
      * 

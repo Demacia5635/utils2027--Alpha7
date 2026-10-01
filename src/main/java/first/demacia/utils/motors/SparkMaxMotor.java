@@ -63,7 +63,7 @@ public class SparkMaxMotor extends BaseMotor {
   }
 
   protected void createMotor() {
-    motor = new SparkMax(config.canBusId, config.id, MotorType.kBrushless);
+    motor = new SparkMax(config.canPort, config.id, MotorType.kBrushless);
   }
 
   protected void createMotorConfig() {

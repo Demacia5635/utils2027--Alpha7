@@ -1,5 +1,7 @@
 package first.demacia.utils.motors;
 
+import org.wpilib.hardware.bus.CANPort;
+
 /**
  * * Configuration class specifically for REV Spark Max motors.
  * Extends the base configuration to support Spark-specific parameters.
@@ -14,8 +16,8 @@ public class SparkMaxConfig extends BaseMotorConfig<SparkMaxConfig> {
      * @param id   The CAN bus ID of the motor
      * @param name The name of the motor for logging and dashboard
      */
-    public SparkMaxConfig(String name, int id, int canBusId) {
-        super(name, id, canBusId);
+    public SparkMaxConfig(String name, int id, CANPort canPort) {
+        super(name, id, canPort);
         motorClass = MotorControllerType.SparkMax;
     }
 
@@ -26,8 +28,10 @@ public class SparkMaxConfig extends BaseMotorConfig<SparkMaxConfig> {
      * @param name   The new name
      * @param config The existing configuration to copy from
      */
-    public SparkMaxConfig(String name, int id, int canBusId, BaseMotorConfig<?> config) {
-        super(name, id, canBusId);
+    public SparkMaxConfig(String name, int id, CANPort canPort, BaseMotorConfig<?> config) {
+        super(name, id, canPort);
         copyBaseFields(config);
+        motorClass = MotorControllerType.SparkMax;
+
     }
 }

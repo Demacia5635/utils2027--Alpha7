@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.ControlType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import org.wpilib.hardware.bus.CANPort;
 
 import org.wpilib.framework.RobotBase;
 import org.wpilib.system.Timer;
@@ -63,7 +64,7 @@ public class SparkFlexMotor extends BaseMotor {
   }
 
   protected void createMotor() {
-    motor = new SparkFlex(config.canBusId, config.id, MotorType.kBrushless);
+    motor = new SparkFlex(config.canPort, config.id, MotorType.kBrushless);
   }
 
   protected void createMotorConfig() {
