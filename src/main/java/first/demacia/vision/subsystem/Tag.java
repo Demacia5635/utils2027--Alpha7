@@ -78,8 +78,8 @@ public class Tag extends SubsystemBase {
     field = new Field2d();
     latency = 0;
     is3D = Table.getEntry("pipeline").getInteger(0) == 1;
-    // SmartDashboard.putData("Tag" + cameraId, this);
-    // SmartDashboard.putData("field-tag" + camera.getName(), field);
+    // Log.publishTelemetry("Tag" + camera.getName(), this);
+    // Log.publishTelemetry("field-tag" + camera.getName(), field);
   }
 
   @Override

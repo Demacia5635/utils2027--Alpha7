@@ -1,7 +1,7 @@
 package first.demacia.utils.motors;
 
 import java.util.function.Supplier;
-import org.wpilib.tunable.TunableRegistry;
+import org.wpilib.telemetry.TelemetryLoggable;
 
 
 /**
@@ -13,7 +13,7 @@ import org.wpilib.tunable.TunableRegistry;
  * motor types.
  * </p>
  */
-public interface MotorInterface extends Sendable {
+public interface MotorInterface extends TelemetryLoggable {
 
   /** Enumeration of supported control modes */
   enum ControlMode {
@@ -24,13 +24,11 @@ public interface MotorInterface extends Sendable {
   String getName();
 
   /**
-   * Sets the name of the motor in the SendableRegistry.
+   * Sets the name of the motor.
    * 
    * @param name The new name
    */
-  default void setName(String name) {
-    SendableRegistry.setName(this, name);
-  }
+  void setName(String name);
 
   boolean isConnected();
 

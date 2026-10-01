@@ -7,6 +7,11 @@ import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.RunCommand;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.telemetry.TelemetryTable;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.Selectable;
+import org.wpilib.tunable.TunableTable;
+import org.wpilib.tunable.Tunables;
 
 import first.demacia.utils.Data;
 import first.demacia.utils.elastic.ElasticGenerator;
@@ -36,7 +41,7 @@ public abstract class BaseMotor implements MotorInterface {
   private ControlMode controlMode = ControlMode.DISABLE;
 
   private ControlMode valueControlMode = ControlMode.DUTYCYCLE;
-  private SendableChooser<ControlMode> valueControlModeChooser = new SendableChooser<>();
+  private Selectable<ControlMode> valueControlModeChooser = new Selectable<>();
 
   private boolean[] kFlags = { true, true, true, false, false, false };
 
@@ -55,7 +60,8 @@ public abstract class BaseMotor implements MotorInterface {
     setSignals();
     addLog();
     setName(name);
-    SmartDashboard.putData("motors/" + name, this);
+    Log.publishTelemetry("motors/" + name, this);
+    Tunables.getTable("motors/" + name).publishDouble("test Value", this::getTestValue, this::setTestValue);
     Log.log(name + " motor initialized");
     ElasticGenerator.getInstance().registerMotor(this);
     Sysid.registerMotor(this);
@@ -90,7 +96,6 @@ public abstract class BaseMotor implements MotorInterface {
 
   @Override
   public void setName(String name) {
-    MotorInterface.super.setName(name);
     this.name = name;
   }
 
@@ -115,18 +120,18 @@ public abstract class BaseMotor implements MotorInterface {
     Log.putData("motors/" + name + "/current value", this::getCurrentValue);
     Log.putData("motors/" + name + "/is Connected", this::isConnected);
 
-    SmartDashboard.putData("motors/" + getName() + "/test value command",
+    Tunables.publish("motors/" + getName() + "/test value command",
         new RunCommand(() -> applyControlModeValue(valueControlMode, testValue))
             .finallyDo(interrupted -> stop()));
 
-    valueControlModeChooser.setDefaultOption(ControlMode.DUTYCYCLE.name(), ControlMode.DUTYCYCLE);
+    valueControlModeChooser.addDefault(ControlMode.DUTYCYCLE.name(), ControlMode.DUTYCYCLE);
     for (ControlMode mode : ControlMode.class.getEnumConstants()) {
       if (mode == ControlMode.DISABLE)
         continue;
-      valueControlModeChooser.addOption(mode.name(), mode);
+      valueControlModeChooser.add(mode.name(), mode);
     }
     valueControlModeChooser.onChange(mode -> this.valueControlMode = mode);
-    SmartDashboard.putData("motors/" + getName() + "/Value Control Mode Chooser", valueControlModeChooser);
+    Tunables.publish("motors/" + getName() + "/Value Control Mode Chooser", valueControlModeChooser);
 
     configPidFf(0);
     configMotionMagic();
@@ -395,29 +400,33 @@ public abstract class BaseMotor implements MotorInterface {
       applyPidFfConfigs(slot);
     }).ignoringDisable(true);
 
-    SmartDashboard.putData("motors/" + getName() + "/PID+FF config slot " + slot, new Sendable() {
+    Tunables.publish("motors/" + getName() + "/PID+FF config slot " + slot, new ComplexTunable() {
       @Override
-      public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("PID+FF Config");
+      public String getTunableType() {
+        return "PID+FF Config";
+      }
+
+      @Override
+      public void publishTunable(TunableTable table) {
         boolean[] flags = getSysidFlags();
 
-        builder.addDoubleProperty("KP", () -> config.pidFfParams[slot].kP(), (v) -> config.pidFfParams[slot].setKP(v));
-        builder.addDoubleProperty("KI", () -> config.pidFfParams[slot].kI(), (v) -> config.pidFfParams[slot].setKI(v));
-        builder.addDoubleProperty("KD", () -> config.pidFfParams[slot].kD(), (v) -> config.pidFfParams[slot].setKD(v));
-        builder.addBooleanProperty("USE_KS", () -> flags[0], (v) -> flags[0] = v);
-        builder.addDoubleProperty("KS", () -> config.pidFfParams[slot].kS(), (v) -> config.pidFfParams[slot].setKS(v));
-        builder.addBooleanProperty("USE_KV", () -> flags[1], (v) -> flags[1] = v);
-        builder.addDoubleProperty("KV", () -> config.pidFfParams[slot].kV(), (v) -> config.pidFfParams[slot].setKV(v));
-        builder.addBooleanProperty("USE_KA", () -> flags[2], (v) -> flags[2] = v);
-        builder.addDoubleProperty("KA", () -> config.pidFfParams[slot].kA(), (v) -> config.pidFfParams[slot].setKA(v));
-        builder.addBooleanProperty("USE_KG", () -> flags[3], (v) -> flags[3] = v);
-        builder.addDoubleProperty("KG", () -> config.pidFfParams[slot].kG(), (v) -> config.pidFfParams[slot].setKG(v));
-        builder.addBooleanProperty("USE_KCOS", () -> flags[4], (v) -> flags[4] = v);
-        builder.addDoubleProperty("KCOS", () -> config.pidFfParams[slot].kCos(), (v) -> config.pidFfParams[slot].setKCos(v));
-        builder.addBooleanProperty("USE_KV2", () -> flags[5], (v) -> flags[5] = v);
-        builder.addDoubleProperty("KV2", () -> config.pidFfParams[slot].kV2(), (v) -> config.pidFfParams[slot].setKV2(v));
+        table.publishDouble("KP", () -> config.pidFfParams[slot].kP(), (v) -> config.pidFfParams[slot].setKP(v));
+        table.publishDouble("KI", () -> config.pidFfParams[slot].kI(), (v) -> config.pidFfParams[slot].setKI(v));
+        table.publishDouble("KD", () -> config.pidFfParams[slot].kD(), (v) -> config.pidFfParams[slot].setKD(v));
+        table.publishBoolean("USE_KS", () -> flags[0], (v) -> flags[0] = v);
+        table.publishDouble("KS", () -> config.pidFfParams[slot].kS(), (v) -> config.pidFfParams[slot].setKS(v));
+        table.publishBoolean("USE_KV", () -> flags[1], (v) -> flags[1] = v);
+        table.publishDouble("KV", () -> config.pidFfParams[slot].kV(), (v) -> config.pidFfParams[slot].setKV(v));
+        table.publishBoolean("USE_KA", () -> flags[2], (v) -> flags[2] = v);
+        table.publishDouble("KA", () -> config.pidFfParams[slot].kA(), (v) -> config.pidFfParams[slot].setKA(v));
+        table.publishBoolean("USE_KG", () -> flags[3], (v) -> flags[3] = v);
+        table.publishDouble("KG", () -> config.pidFfParams[slot].kG(), (v) -> config.pidFfParams[slot].setKG(v));
+        table.publishBoolean("USE_KCOS", () -> flags[4], (v) -> flags[4] = v);
+        table.publishDouble("KCOS", () -> config.pidFfParams[slot].kCos(), (v) -> config.pidFfParams[slot].setKCos(v));
+        table.publishBoolean("USE_KV2", () -> flags[5], (v) -> flags[5] = v);
+        table.publishDouble("KV2", () -> config.pidFfParams[slot].kV2(), (v) -> config.pidFfParams[slot].setKV2(v));
 
-        builder.addBooleanProperty("Update", () -> configPidFfCmd.isScheduled(),
+        table.publishBoolean("Update", () -> configPidFfCmd.isScheduled(),
             value -> {
               if (value && !configPidFfCmd.isScheduled()) {
                 CommandScheduler.getInstance().schedule(configPidFfCmd);
@@ -435,16 +444,19 @@ public abstract class BaseMotor implements MotorInterface {
   private void configMotionMagic() {
     Command configMotionMagicCmd = new InstantCommand(this::applyMotionMagicConfigs).ignoringDisable(true);
 
-    SmartDashboard.putData("motors/" + getName() + "/Motion Magic Config", new Sendable() {
+    Tunables.publish("motors/" + getName() + "/Motion Magic Config", new ComplexTunable() {
       @Override
-      public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("Motion Magic Config");
+      public String getTunableType() {
+        return "Motion Magic Config";
+      }
 
-        builder.addDoubleProperty("Vel", () -> config.maxVelocity, (maxVelocity) -> config.maxVelocity = maxVelocity);
-        builder.addDoubleProperty("Acc", () -> config.maxAcceleration,
+      @Override
+      public void publishTunable(TunableTable table) {
+        table.publishDouble("Vel", () -> config.maxVelocity, (maxVelocity) -> config.maxVelocity = maxVelocity);
+        table.publishDouble("Acc", () -> config.maxAcceleration,
             (maxAcceleration) -> config.maxAcceleration = maxAcceleration);
-        builder.addDoubleProperty("Jerk", () -> config.maxJerk, (maxJerk) -> config.maxJerk = maxJerk);
-        builder.addBooleanProperty("Update", () -> configMotionMagicCmd.isScheduled(),
+        table.publishDouble("Jerk", () -> config.maxJerk, (maxJerk) -> config.maxJerk = maxJerk);
+        table.publishBoolean("Update", () -> configMotionMagicCmd.isScheduled(),
             value -> {
               if (value && !configMotionMagicCmd.isScheduled()) {
                 CommandScheduler.getInstance().schedule(configMotionMagicCmd);
@@ -505,23 +517,25 @@ public abstract class BaseMotor implements MotorInterface {
   }
 
   @Override
-  public void initSendable(SendableBuilder builder) {
-    builder.setSmartDashboardType("Motor");
-    builder.addBooleanProperty("Is Connected", this::isConnected, null);
-    builder.addDoubleProperty("CloseLoopError", this::getCurrentClosedLoopError, null);
-    builder.addDoubleProperty("Position", this::getCurrentPosition, null);
-    builder.addDoubleProperty("Velocity", this::getCurrentVelocity, null);
-    builder.addDoubleProperty("Acceleration", this::getCurrentAcceleration, null);
-    builder.addDoubleProperty("Voltage", this::getCurrentVoltage, null);
-    builder.addDoubleProperty("Current", this::getCurrentCurrent, null);
+  public void logTo(TelemetryTable table) {
+    table.log("Is Connected", isConnected());
+    table.log("CloseLoopError", getCurrentClosedLoopError());
+    table.log("Position", getCurrentPosition());
+    table.log("Velocity", getCurrentVelocity());
+    table.log("Acceleration", getCurrentAcceleration());
+    table.log("Voltage", getCurrentVoltage());
+    table.log("Current", getCurrentCurrent());
     if (isRadiansMotor()) {
-      builder.addDoubleProperty("Angle", this::getCurrentAngle, null);
+      table.log("Angle", getCurrentAngle());
     }
-    builder.addDoubleProperty("Value", this::getCurrentValue, null);
-    builder.addDoubleProperty("ControlMode", this::getCurrentControlModeInteger, null);
-    builder.addDoubleProperty("Wanted Value", this::getWantedValue, null);
+    table.log("Value", getCurrentValue());
+    table.log("ControlMode", getCurrentControlModeInteger());
+    table.log("Wanted Value", getWantedValue());
+  }
 
-    builder.addDoubleProperty("test Value", this::getTestValue, (value) -> setTestValue(value));
+  @Override
+  public String getTelemetryType() {
+    return "Motor";
   }
 
   // Raw data Accessors

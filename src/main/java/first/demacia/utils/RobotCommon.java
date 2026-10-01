@@ -30,10 +30,14 @@ public class RobotCommon implements ComplexTunable {
         isComp = newIsComp;
     }
 
- @Override
-public void publishTunable(TunableTable table) {
-    // builder.setSmartDashboardType("RobotCommon");// no idea on how to do that with new classes
-    table.publishBoolean("is red", RobotCommon::getIsRed, RobotCommon::setIsRed);
-    table.publishBoolean("is comp", RobotCommon::getIsComp, RobotCommon::setIsComp);
-}
+    @Override
+    public String getTunableType() {
+        return "RobotCommon";
+    }
+
+    @Override
+    public void publishTunable(TunableTable table) {
+        table.publishBoolean("is red", RobotCommon::getIsRed, RobotCommon::setIsRed);
+        table.publishBoolean("is comp", RobotCommon::getIsComp, RobotCommon::setIsComp);
+    }
 }

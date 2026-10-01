@@ -1,8 +1,9 @@
 package first.demacia.utils.sensors;
 
+import org.wpilib.telemetry.TelemetryTable;
+
 import java.util.function.Supplier;
 
-import org.wpilib.util.sendable.SendableBuilder;
 
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
@@ -47,10 +48,9 @@ public class AnalogEncoder extends org.wpilib.hardware.rotation.AnalogEncoder im
     public AnalogEncoder(AnalogEncoderConfig config){
         super(config.echoChannel, config.fullRange, config.offset);
         this.config = config;
-        setName(config.name);
         configEncoder();
         addLog();
-        SmartDashboard.putData("sensors/" + config.name, this);
+        Log.publishTelemetry("sensors/" + config.name, this);
         Log.log(getName() + " analog encoder initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -105,9 +105,13 @@ public class AnalogEncoder extends org.wpilib.hardware.rotation.AnalogEncoder im
     }
     
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("AbsoluteEncoder");
-        builder.addDoubleProperty("value", this::get, null);
-        builder.addDoubleProperty("Position", this::get, null);
+    public void logTo(TelemetryTable table) {
+        table.log("value", get());
+        table.log("Position", get());
+    }
+
+    @Override
+    public String getTelemetryType() {
+        return "AbsoluteEncoder";
     }
 }

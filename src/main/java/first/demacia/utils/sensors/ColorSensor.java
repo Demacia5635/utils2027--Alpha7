@@ -1,4 +1,6 @@
 package first.demacia.utils.sensors;
+
+import org.wpilib.telemetry.TelemetryTable;
 import org.wpilib.util.Color;
 
 import com.revrobotics.ColorMatch;
@@ -46,20 +48,14 @@ public class ColorSensor extends ColorSensorV3 implements ColorSensorInterface {
         super(I2C.Port.PORT_0); 
         this.config = config;
         name = config.name;
-        setName(name);
         matcher = new ColorMatch();
 
         addDefaultColors();
         addLog();
 
-        SmartDashboard.putData("sensors/" + name, this);
+        Log.publishTelemetry("sensors/" + name, this);
         Log.log(name + " color sensor initialized");
         ElasticGenerator.getInstance().registerSensor(this);
-    }
-
-    @Override
-    public void setName(String name) {
-        ColorSensorInterface.super.setName(name);
     }
 
     private void addDefaultColors() {
@@ -197,11 +193,15 @@ public class ColorSensor extends ColorSensorV3 implements ColorSensorInterface {
     }
 
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("Color Sensor");
-        builder.addDoubleProperty("value", this::getProximity, null);
-        builder.addDoubleProperty("Proximity", this::getProximity, null);
-        builder.addStringProperty("Matched Color", this::getMatchedColorName, null);
-        builder.addBooleanProperty("is Connected", this::isConnected, null);
+    public void logTo(TelemetryTable table) {
+        table.log("value", getProximity());
+        table.log("Proximity", getProximity());
+        table.log("Matched Color", getMatchedColorName());
+        table.log("is Connected", isConnected());
+    }
+
+    @Override
+    public String getTelemetryType() {
+        return "Color Sensor";
     }
 }

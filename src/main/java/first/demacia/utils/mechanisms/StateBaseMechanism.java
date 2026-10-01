@@ -4,16 +4,16 @@ package first.demacia.utils.mechanisms;
 import first.demacia.utils.log.Log;
 import first.demacia.utils.motors.MotorInterface;
 import first.demacia.utils.sensors.SensorInterface;
+import org.wpilib.telemetry.TelemetryTable;
 import org.wpilib.tunable.Selectable;
-import org.wpilib.tunable.TunableTable;
-import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.Tunables;
 
 /**
  * An extension of BaseMechanism that introduces the concept of States.
  * <p>
  * This class allows controlling the mechanism using a State Machine approach.
  * Each state defines a set of target values (e.g., positions or velocities) for the motors.
- * It includes a {@link SendableChooser} on the dashboard to manually switch states for testing.
+ * It includes a {@link Selectable} on the dashboard to manually switch states for testing.
  * </p>
  */
 public class StateBaseMechanism extends BaseMechanism {
@@ -98,7 +98,9 @@ public class StateBaseMechanism extends BaseMechanism {
         // Listener to update the local state variable when dashboard selection changes
         stateChooser.onChange(state -> this.state = state);
         
-        // SmartDashboard.putData(getName() + "/" + getName() + " State Chooser", stateChooser); TODO
+        Tunables.publish(getName() + "/" + getName() + " State Chooser", stateChooser);
+        Tunables.getTable(getName()).publishValue(getName() + " Test Values",
+            this::getTestValues, this::setTestValues, double[].class);
 
         for (int i = 0; i < getState().getValues().length; i++){
             final int index = i;
@@ -120,18 +122,15 @@ public class StateBaseMechanism extends BaseMechanism {
     }
 
     /**
-     * Initializes the Sendable data.
-     * Adds the 'Test Values' array property to the dashboard so it can be edited live.
+     * Logs the mechanism's dashboard data, adding the current state name to the
+     * default subsystem telemetry. The editable 'Test Values' array is published
+     * as a tunable when the state chooser is created.
      */
-
-        // builder.addDoubleArrayProperty(getName() + " Test Values", () -> getTestValues(), testValues -> setTestValues(testValues));
-        // builder.addStringProperty(getName() + " State", () -> (getState() == null)? "" : getState().name(), null);
-  
-    // @Override TODO
-    // public void publishTunable(TunableTable table) {
-    //     super.publishTunable(table);
-    //     table.publish(getName() + " Test Values", () -> getTestValues(), testValues -> setTestValues(testValues));
-    // }
+    @Override
+    public void logTo(TelemetryTable table) {
+        super.logTo(table);
+        table.log(getName() + " State", (getState() == null) ? "" : getState().name());
+    }
 
     /**
      * Manually sets the current state of the mechanism.
