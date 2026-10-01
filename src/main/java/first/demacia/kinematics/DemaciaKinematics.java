@@ -144,7 +144,7 @@ public class DemaciaKinematics {
         double sumVy = 0;
 
         for (int i = 0; i < 4; i++) {
-            double angleFromCenter = modulePositionOnTheRobot[i].getAngle().getRadians();
+            double angleFromCenter = modulePositionOnTheRobot[i].getAngle().map(Rotation2d::getRadians).orElse(0.0);
             double distanceFromCenter = modulePositionOnTheRobot[i].getNorm();
             double currentAngle = swerveStates[i].angle.getRadians();
             double moduleVx = swerveStates[i].velocity * Math.cos(currentAngle);
@@ -166,7 +166,7 @@ public class DemaciaKinematics {
         double omega = wantedVelocities.omega;
 
         for (int i = 0; i < 4; i++) {
-            double moduleAngleFromCenter = modulePositionOnTheRobot[i].getAngle().getRadians();
+            double moduleAngleFromCenter = modulePositionOnTheRobot[i].getAngle().map(Rotation2d::getRadians).orElse(0.0);
             double moduleCurrentAngle = startRobotPosition.getRotation().getRadians();
             Translation2d velocityVector = new Translation2d(
                     wantedVelocities.vx + omega * modulePositionOnTheRobot[i].getNorm()

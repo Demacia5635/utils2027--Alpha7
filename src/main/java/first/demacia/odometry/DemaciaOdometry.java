@@ -16,7 +16,7 @@ public class DemaciaOdometry {
     private Pose2d pose;
     private final Translation2d[] modulePositions;
     private SwerveModulePosition[] lastPositions;
-    private Rotation2d lastAngle = Rotation2d.kZero;
+    private Rotation2d lastAngle = Rotation2d.ZERO;
     // private final AccelOdometry accelOdometry;
     private static DemaciaOdometry instance;
     private final double modulesDistanceSum;

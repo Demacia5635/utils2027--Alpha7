@@ -12,7 +12,7 @@ public class Pneumatics extends Compressor {
     String name;
 	
     public Pneumatics(PneumaticsConfig config) {
-        super(config.module, config.moduleType);
+        super(config.busId, config.moduleType);
         this.config = config;
         this.name= config.name;
         addLog();
