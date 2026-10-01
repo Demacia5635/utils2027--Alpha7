@@ -1,7 +1,8 @@
 package first.demacia.utils.sensors;
+
+import org.wpilib.telemetry.TelemetryTable;
 import java.util.function.Supplier;
 
-import org.wpilib.util.sendable.SendableBuilder;
 import org.wpilib.hardware.discrete.AnalogInput;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
@@ -38,9 +39,8 @@ public class OpticalSensor extends AnalogInput implements SensorInterface {
         super(config.echoChannel);
         this.config = config;
 		name = config.name;
-        setName(name);
         addLog();
-        SmartDashboard.putData("sensors/" + config.name, this);
+        Log.publishTelemetry("sensors/" + config.name, this);
 		Log.log(name + " Optical Sensor initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -100,8 +100,8 @@ public class OpticalSensor extends AnalogInput implements SensorInterface {
      * Checks sensor health (no-op for analog inputs).
      */
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("value" , this::get, null);
+    public void logTo(TelemetryTable table) {
+        table.log("value", get());
     }
 }
 

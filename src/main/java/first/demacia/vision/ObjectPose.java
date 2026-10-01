@@ -14,6 +14,8 @@ import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.telemetry.Telemetry;
 
+import first.demacia.utils.log.Log;
+
 // Subsystem that tracks and calculates the position of a vision target (object) on the field
 public class ObjectPose{
   private Translation2d robotToObject;
@@ -54,8 +56,8 @@ public class ObjectPose{
     this.camera = camera;
     Table = NetworkTableInstance.getDefault().getTable(camera.getTableName());
 
-    SmartDashboard.putData("fieldObject" + camera.getName(), field);
-    SmartDashboard.putData("fieldrobot" + camera.getName(), robotfield);
+    Log.publishTelemetry("fieldObject" + camera.getName(), field);
+    Log.publishTelemetry("fieldrobot" + camera.getName(), robotfield);
     
     // SmartDashboard.putNumber("tx", camera.getX());
     // SmartDashboard.putNumber("ty", camera.getY());

@@ -8,6 +8,7 @@ import org.wpilib.math.util.MathUtil;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.tunable.Tunables;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
 import first.demacia.utils.motors.MotorInterface;
@@ -20,7 +21,7 @@ import first.demacia.utils.sensors.SensorInterface;
  * <ul>
  * <li>Storing motors and sensors by name for easy retrieval via a single MotorNode map.</li>
  * <li>Controlling motors efficiently with specific position/power conditions.</li>
- * <li>Automatically creating SmartDashboard buttons for switching Neutral Modes.</li>
+ * <li>Automatically creating dashboard buttons for switching Neutral Modes.</li>
  * <li>Performing electronics checks on hardware.</li>
  * </ul>
  * </p>
@@ -90,19 +91,19 @@ public class BaseMechanism extends SubsystemBase {
 
         // Create individual Brake/Coast buttons for each motor
         for (String motorName : motorNames) {
-            SmartDashboard.putData(getName() + "/" + motorName + "/set brake " + motorName, 
+            Tunables.publish(getName() + "/" + motorName + "/set brake " + motorName, 
                 new InstantCommand(() -> setNeutralMode(motorName, true)).ignoringDisable(true));
-            SmartDashboard.putData(getName() + "/" + motorName + "/set coast " + motorName, 
+            Tunables.publish(getName() + "/" + motorName + "/set coast " + motorName, 
                 new InstantCommand(() -> setNeutralMode(motorName, false)).ignoringDisable(true));
         }
 
         // Create global Brake/Coast buttons for the whole mechanism
-        SmartDashboard.putData(getName() + "/set coast " + getName(), 
+        Tunables.publish(getName() + "/set coast " + getName(), 
                 new InstantCommand(() -> setNeutralMode(false)).ignoringDisable(true));
-        SmartDashboard.putData(getName() + "/set brake " + getName(), 
+        Tunables.publish(getName() + "/set brake " + getName(), 
                 new InstantCommand(() -> setNeutralMode(true)).ignoringDisable(true));
         
-        SmartDashboard.putData(name, this);
+        Log.publishTelemetry(name, this);
         ElasticGenerator.getInstance().registerMechanism(this);
     }
 
@@ -114,7 +115,7 @@ public class BaseMechanism extends SubsystemBase {
     public void withPowerCommand(String motorName, DoubleSupplier powerSupplier) {
         ElasticGenerator.getInstance().registerPowerCommand(this, motors.get(motorName).motor);
 
-        SmartDashboard.putData(getName() + "/" + motorName + "/set power command " + motorName, 
+        Tunables.publish(getName() + "/" + motorName + "/set power command " + motorName, 
             new PowerCommand(this, motorName, powerSupplier));
     }
 
@@ -293,7 +294,7 @@ public class BaseMechanism extends SubsystemBase {
         
         ElasticGenerator.getInstance().registerAutoCalibration(this, motors.get(motorName).motor);
     
-        SmartDashboard.putData(getName() + "/" + motorName + "/" + motorName + " manual reset", new InstantCommand(() -> {
+        Tunables.publish(getName() + "/" + motorName + "/" + motorName + " manual reset", new InstantCommand(() -> {
             node.motor.setEncoderPosition(resetPos);
             node.hasCalibrated = true;
             Log.log(node.hasCalibrated);

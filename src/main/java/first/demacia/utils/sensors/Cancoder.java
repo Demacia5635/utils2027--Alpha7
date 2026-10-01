@@ -1,5 +1,7 @@
 package first.demacia.utils.sensors;
 
+import org.wpilib.telemetry.TelemetryTable;
+
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -75,11 +77,10 @@ public class Cancoder extends CANcoder implements AnalogSensorInterface {
         super(config.id, config.canbus.canbus);
         this.config = config;
         name = config.name;
-        setName(name);
         configCancoder();
         setStatusSignals();
         addLog();
-        SmartDashboard.putData("sensors/" + name, this);
+        Log.publishTelemetry("sensors/" + name, this);
         Log.log(name + " cancoder initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -90,12 +91,6 @@ public class Cancoder extends CANcoder implements AnalogSensorInterface {
         canConfig.MagnetSensor.SensorDirection = config.isInverted ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
         getConfigurator().apply(canConfig);
-    }
-
-    @Override
-    public void setName(String name) {
-        AnalogSensorInterface.super.setName(name);
-        this.name = name;
     }
 
     private void setStatusSignals() {
@@ -211,13 +206,17 @@ public class Cancoder extends CANcoder implements AnalogSensorInterface {
     }
     
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("CANcoder");
-        builder.addBooleanProperty("is Connected", this::isConnected, null);
-        builder.addDoubleProperty("value", this::getCurrentAbsPosition, null);
-        builder.addDoubleProperty("Abs Position", this::getCurrentAbsPosition, null);
-        builder.addDoubleProperty("Position", this::getCurrentPosition, null);
-        builder.addDoubleProperty("Velocity", this::getCurrentVelocity, null);
-        builder.addDoubleProperty("Acceleration", this::getCurrentAcceleration, null);
+    public void logTo(TelemetryTable table) {
+        table.log("is Connected", isConnected());
+        table.log("value", getCurrentAbsPosition());
+        table.log("Abs Position", getCurrentAbsPosition());
+        table.log("Position", getCurrentPosition());
+        table.log("Velocity", getCurrentVelocity());
+        table.log("Acceleration", getCurrentAcceleration());
+    }
+
+    @Override
+    public String getTelemetryType() {
+        return "CANcoder";
     }
 }

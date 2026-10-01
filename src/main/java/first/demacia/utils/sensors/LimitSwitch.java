@@ -1,5 +1,7 @@
 package first.demacia.utils.sensors;
 
+import org.wpilib.telemetry.TelemetryTable;
+
 import java.util.function.Supplier;
 
 import org.wpilib.hardware.discrete.DigitalInput;
@@ -43,10 +45,9 @@ public class LimitSwitch extends DigitalInput implements DigitalSensorInterface{
         super(config.echoChannel);
         this.config = config;
 		name = config.name;
-        setName(name);
         configLimitSwitch();
         addLog();
-        SmartDashboard.putData("sensors/" + config.name, this);
+        Log.publishTelemetry("sensors/" + config.name, this);
 		Log.log(name + " limit switch initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -96,8 +97,13 @@ public class LimitSwitch extends DigitalInput implements DigitalSensorInterface{
     }
 
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("Digital Input");
-        builder.addBooleanProperty("Value", this::get, null);
+    public void logTo(TelemetryTable table) {
+        table.log("value", get());
+        table.log("Value", get());
+    }
+
+    @Override
+    public String getTelemetryType() {
+        return "Digital Input";
     }
 }

@@ -1,5 +1,7 @@
 package first.demacia.utils.sensors;
 
+import org.wpilib.telemetry.TelemetryTable;
+
 import java.util.function.Supplier;
 
 import first.demacia.utils.elastic.ElasticGenerator;
@@ -48,10 +50,9 @@ public class DigitalEncoder extends DutyCycleEncoder implements AnalogSensorInte
         super(config.echoChannel, config.fullRange, config.offset);
         this.config = config;
         name = config.name;
-        setName(name);
         configEncoder();
         addLog();
-        SmartDashboard.putData("sensors/" + name, this);
+        Log.publishTelemetry("sensors/" + name, this);
         Log.log(name + " digital encoder initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -109,10 +110,14 @@ public class DigitalEncoder extends DutyCycleEncoder implements AnalogSensorInte
     }
 
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("AbsoluteEncoder");
-        builder.addDoubleProperty("Position", this::get, null);
-        builder.addDoubleProperty("value", this::get, null);
-        builder.addBooleanProperty("Is Connected", this::isConnected, null);
+    public void logTo(TelemetryTable table) {
+        table.log("Position", get());
+        table.log("value", get());
+        table.log("Is Connected", isConnected());
+    }
+
+    @Override
+    public String getTelemetryType() {
+        return "AbsoluteEncoder";
     }
 }

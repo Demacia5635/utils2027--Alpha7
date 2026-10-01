@@ -5,6 +5,8 @@
 package first.demacia.utils.log;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.wpilib.networktables.NetworkTable;
@@ -16,6 +18,8 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.datalog.DataLog;
 import org.wpilib.driverstation.DriverStation;
 import org.wpilib.util.Alert.Level;
+import org.wpilib.telemetry.Telemetry;
+import org.wpilib.telemetry.TelemetryLoggable;
 import org.wpilib.tunable.ComplexTunable;
 import org.wpilib.tunable.Tunables;
 import org.wpilib.tunable.TunableBoolean;
@@ -68,6 +72,12 @@ public class Log extends SubsystemBase {
   private LogEntry<float[]> groupFloatEntry;
   private LogEntry<boolean[]> groupBooleanEntry;
   private LogEntry<String[]> groupStringEntry;
+
+  /**
+   * Objects that are re-logged to Telemetry every loop, keyed by their telemetry path.
+   * Replaces the automatic refresh that SmartDashboard.putData gave Sendables in 2026.
+   */
+  private final Map<String, TelemetryLoggable> telemetryObjects = new LinkedHashMap<>();
 
   /**
    * Private constructor to enforce Singleton pattern.
@@ -194,7 +204,31 @@ public class Log extends SubsystemBase {
     if (groupStringEntry != null) {
       groupStringEntry.log();
     }
-    
+
+    telemetryObjects.forEach(Telemetry::log);
+  }
+
+  /**
+   * Registers an object to be logged to Telemetry every loop.
+   * 
+   * <p>This is the 2027 replacement for {@code SmartDashboard.putData(key, sendable)} for
+   * read-only values. Telemetry has no automatic refresh, so the Log subsystem calls
+   * {@link Telemetry#log(String, Object)} for every registered object in {@link #periodic()}.</p>
+   * 
+   * @param path     The telemetry path (for example {@code "motors/intake"})
+   * @param loggable The object to log
+   */
+  public static void publishTelemetry(String path, TelemetryLoggable loggable) {
+    logManager.telemetryObjects.put(path, loggable);
+  }
+
+  /**
+   * Stops logging an object that was registered with {@link #publishTelemetry}.
+   * 
+   * @param path The telemetry path the object was registered with
+   */
+  public static void removeTelemetry(String path) {
+    logManager.telemetryObjects.remove(path);
   }
     public static void putData(String key, ComplexTunable tunable) {
     Tunables.publish(key, tunable);

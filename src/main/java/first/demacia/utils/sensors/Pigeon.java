@@ -1,5 +1,7 @@
 package first.demacia.utils.sensors;
 
+import org.wpilib.telemetry.TelemetryTable;
+
  import com.ctre.phoenix6.hardware.Pigeon2; 
  import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import org.wpilib.math.geometry.Rotation2d;
@@ -86,11 +88,10 @@ public class Pigeon extends Pigeon2 implements SensorInterface{
         super(config.id, config.canbus.canbus);
         this.config = config;
         name = config.name;
-        setName(name);
         configPigeon();
         setStatusSignals();
         addLog();
-        SmartDashboard.putData("sensors/" + config.name, this);
+        Log.publishTelemetry("sensors/" + config.name, this);
 		Log.log(name + " pigeon initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -357,22 +358,26 @@ public class Pigeon extends Pigeon2 implements SensorInterface{
     }
 
     @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("Gyro");
-        builder.addBooleanProperty("is Connected", this::isConnected, null);
-        builder.addDoubleProperty("value", this::getCurrentYaw, null);
-        builder.addDoubleProperty("yaw", this::getCurrentYaw, null);
-        builder.addDoubleProperty("yaw Degree", this::getCurrentYawDegree, null);
-        builder.addDoubleProperty("pitch", this::getCurrentPitch, null);
-        builder.addDoubleProperty("roll", this::getCurrentRoll, null);
-        builder.addDoubleProperty("x velocity", this::getXVelocity, null);
-        builder.addDoubleProperty("y velocity", this::getYVelocity, null);
-        builder.addDoubleProperty("z velocity", this::getZVelocity, null);
-        builder.addDoubleProperty("x acceleration", this::getXAcceleration, null);
-        builder.addDoubleProperty("y acceleration", this::getYAcceleration, null);
-        builder.addDoubleProperty("z acceleration", this::getZAcceleration, null);
-        builder.addDoubleProperty("x angular acceleration", this::getXAngularAcceleration, null);
-        builder.addDoubleProperty("y angular acceleration", this::getYAngularAcceleration, null);
-        builder.addDoubleProperty("z angular acceleration", this::getZAngularAcceleration, null);
+    public void logTo(TelemetryTable table) {
+        table.log("is Connected", isConnected());
+        table.log("value", getCurrentYaw());
+        table.log("yaw", getCurrentYaw());
+        table.log("yaw Degree", getCurrentYawDegree());
+        table.log("pitch", getCurrentPitch());
+        table.log("roll", getCurrentRoll());
+        table.log("x velocity", getXVelocity());
+        table.log("y velocity", getYVelocity());
+        table.log("z velocity", getZVelocity());
+        table.log("x acceleration", getXAcceleration());
+        table.log("y acceleration", getYAcceleration());
+        table.log("z acceleration", getZAcceleration());
+        table.log("x angular acceleration", getXAngularAcceleration());
+        table.log("y angular acceleration", getYAngularAcceleration());
+        table.log("z angular acceleration", getZAngularAcceleration());
+    }
+
+    @Override
+    public String getTelemetryType() {
+        return "Gyro";
     }
 }

@@ -13,14 +13,13 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.tunable.ComplexTunable;
-import org.wpilib.tunable.TunableDouble;
-import org.wpilib.tunable.TunableTable;
+import org.wpilib.telemetry.TelemetryTable;
 
+import first.demacia.utils.log.Log;
 import first.demacia.vision.CameraConfig;
 
 // Subsystem that tracks and calculates the position of a vision target (object) on the field
-public class ObjectPose extends SubsystemBase implements ComplexTunable {
+public class ObjectPose extends SubsystemBase {
   private Translation2d robotToObject;
   private Translation2d cameraToObject;
   private Translation2d OriginToObject;
@@ -56,8 +55,9 @@ public class ObjectPose extends SubsystemBase implements ComplexTunable {
     this.camera = camera;
     Table = NetworkTableInstance.getDefault().getTable(camera.getTableName());
 
-     SmartDashboard.putData("fieldObject" + camera.getName(), field);
-     SmartDashboard.putData("fieldrobot" + camera.getName(), robotfield);
+     Log.publishTelemetry("fieldObject" + camera.getName(), field);
+     Log.publishTelemetry("fieldrobot" + camera.getName(), robotfield);
+     Log.publishTelemetry("ObjectPose" + camera.getName(), this);
 
   }
 
@@ -130,14 +130,14 @@ public class ObjectPose extends SubsystemBase implements ComplexTunable {
   }
 
   /**
-   * Configures the Shuffleboard/SmartDashboard display for this subsystem.
-   * Adds the X and Y coordinates of the tracked object to the dashboard.
+   * Logs this subsystem to the dashboard.
+   * Adds the X and Y coordinates of the tracked object to the default subsystem telemetry.
    */
-
   @Override
-  public void publishTunable(TunableTable table) {
-    table.publishDouble(getName() + " object pos X:", this::getX, null);
-    table.publishDouble(getName() + " object pos Y:", this::getY, null);
+  public void logTo(TelemetryTable table) {
+    super.logTo(table);
+    table.log(getName() + " object pos X:", getX());
+    table.log(getName() + " object pos Y:", getY());
   }
 
   
