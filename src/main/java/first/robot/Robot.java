@@ -7,7 +7,6 @@ package first.robot;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.driverstation.Gamepad;
 import org.wpilib.framework.TimedRobot;
-import org.wpilib.telemetry.*;
 
 
 import first.demacia.utils.chassis.Chassis;
@@ -23,16 +22,16 @@ import first.robot.chassis.RobotChassisConstants;
  * this project, you must also update the manifest file in the resource directory.
  */
 public class Robot extends TimedRobot {
-  // private final Gamepad controller = new Gamepad(0);
+  private final Gamepad controller = new Gamepad(0);
 
   /** Called once at the beginning of the robot program. */
   public Robot() {
-    // Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
+    Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
     
-    // new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
-    // configureBindings();
-    // setDefaultCommands();
-    // setController();
+    new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
+    configureBindings();
+    setDefaultCommands();
+    setController();
 
 
   }
@@ -42,7 +41,7 @@ public class Robot extends TimedRobot {
   }
 
   private void setDefaultCommands() {
-    // Chassis.getInstance().setDefaultCommand(new DriveCommand(Chassis.getInstance(), controller));
+     Chassis.getInstance().setDefaultCommand(new DriveCommand(Chassis.getInstance(), controller));
   }
 
   private void setController() {

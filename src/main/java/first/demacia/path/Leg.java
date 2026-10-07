@@ -27,8 +27,10 @@ public class Leg {
         startAngleChange = startAngleChange.times((start.isLeft ? -1 : 1));
         endAngleChange = endAngleChange.times((end.isLeft ? -1 : 1));
 
-        this.start = start.center.plus(new Translation2d(start.radius, startToEnd.getAngle().rotateBy(startAngleChange)));
-        this.end = end.center.plus(new Translation2d(end.radius, startToEnd.getAngle().rotateBy(endAngleChange)));
+    
+        Rotation2d startToEndAngle = startToEnd.getAngle().orElseThrow(() -> new IllegalArgumentException("Start and end circle centers coincide"));        
+        this.start = start.center.plus(new Translation2d(start.radius, startToEndAngle.rotateBy(startAngleChange)));
+        this.end = end.center.plus(new Translation2d(end.radius, startToEndAngle.rotateBy(endAngleChange)));
     }
     public Translation2d getStart() {
         return start;
