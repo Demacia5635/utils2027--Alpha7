@@ -56,7 +56,7 @@ public class SparkFlexMotor extends BaseMotor {
     
         double newPos = pos + vel * 0.02;
 
-        encoderSim.setPosition(newPos);
+        encoderSim.setPosition(toNativePosition(newPos));
         
         return 0;
       });
@@ -97,8 +97,18 @@ public class SparkFlexMotor extends BaseMotor {
   }
 
   protected void configMotorRatio(double motorRatio) {
-    cfg.encoder.positionConversionFactor(1 / config.motorRatio);
-    cfg.encoder.velocityConversionFactor(1 / config.motorRatio);
+    // REVLib 2027 removed encoder conversion factors, so the ratio is applied in
+    // software (see toNativePosition / toNativeVelocity)
+  }
+
+  /** Converts mechanism units to motor rotations */
+  private double toNativePosition(double position) {
+    return position * config.motorRatio;
+  }
+
+  /** Converts mechanism units per second to motor RPM */
+  private double toNativeVelocity(double velocity) {
+    return velocity * config.motorRatio * 60;
   }
 
   protected void configPidFf(CloseLoopParam[] pidFfParams) {
@@ -132,8 +142,8 @@ public class SparkFlexMotor extends BaseMotor {
   }
 
   protected void configMotionMagic(double maxVelocity, double maxAcceleration, double maxJerk) {
-    cfg.closedLoop.maxMotion.cruiseVelocity(config.maxVelocity)
-        .maxAcceleration(config.maxAcceleration);
+    cfg.closedLoop.maxMotion.cruiseVelocity(toNativeVelocity(config.maxVelocity))
+        .maxAcceleration(toNativeVelocity(config.maxAcceleration));
   }
 
   protected void applyConfigs() {
@@ -153,8 +163,8 @@ public class SparkFlexMotor extends BaseMotor {
   }
 
   protected void setSignals() {
-    positionSignal = new Data<>(() -> motor.getEncoder().getPosition());
-    velocitySignal = new Data<>(() -> motor.getEncoder().getVelocity());
+    positionSignal = new Data<>(() -> motor.getEncoder().getPosition().get() / config.motorRatio);
+    velocitySignal = new Data<>(() -> motor.getEncoder().getVelocity().get() / 60 / config.motorRatio);
     accelerationSignal = new Data<>(() -> {
       double currentTimestamp = Timer.getTimestamp();
       double dt = currentTimestamp - lastTime;
@@ -172,7 +182,7 @@ public class SparkFlexMotor extends BaseMotor {
       return lastAcceleration;
     });
     voltageSignal = new Data<>(() -> motor.getAppliedOutput().get() * 12);
-    currentSignal = new Data<>(() -> motor.getOutputCurrent());
+    currentSignal = new Data<>(() -> motor.getOutputCurrent().get());
     closedLoopSPSignal = new Data<>(() -> getWantedValue());
     closedLoopErrorSignal = new Data<>(() -> getCalculatedError());
   }
@@ -194,7 +204,7 @@ public class SparkFlexMotor extends BaseMotor {
     motor.setThrottle(power);
 
     if (RobotBase.isSimulation()) {
-      encoderSim.setVelocity(power * MAX_SIM_VEL);
+      encoderSim.setVelocity(toNativeVelocity(power * MAX_SIM_VEL));
     }
   }
 
@@ -203,33 +213,34 @@ public class SparkFlexMotor extends BaseMotor {
 
     if (RobotBase.isSimulation()) {
       double power = voltage / 12.0;
-      encoderSim.setVelocity(power * MAX_SIM_VEL);
+      encoderSim.setVelocity(toNativeVelocity(power * MAX_SIM_VEL));
     }
   }
 
   protected void setMotorVelocity(double velocity, double feedForward) {
-    motor.getClosedLoopController().setSetpoint(velocity, ControlType.kMAXMotionVelocityControl, closedLoopSlot,
-        feedForward);
+    motor.getClosedLoopController().setSetpoint(toNativeVelocity(velocity), ControlType.kMAXMotionVelocityControl,
+        closedLoopSlot, feedForward);
 
     if (RobotBase.isSimulation()) {
-      encoderSim.setVelocity(velocity);
+      encoderSim.setVelocity(toNativeVelocity(velocity));
     }
   }
 
   protected void setMotorPositionVoltage(double position, double feedForward) {
-    motor.getClosedLoopController().setSetpoint(position, ControlType.kPosition, closedLoopSlot, feedForward);
+    motor.getClosedLoopController().setSetpoint(toNativePosition(position), ControlType.kPosition, closedLoopSlot,
+        feedForward);
   
     if (RobotBase.isSimulation()) {
-      encoderSim.setPosition(position);
+      encoderSim.setPosition(toNativePosition(position));
     }
   }
 
   protected void setMotorMotionMagic(double position, double feedForward) {
-    motor.getClosedLoopController().setSetpoint(position, ControlType.kMAXMotionPositionControl, closedLoopSlot,
-        feedForward);
+    motor.getClosedLoopController().setSetpoint(toNativePosition(position), ControlType.kMAXMotionPositionControl,
+        closedLoopSlot, feedForward);
 
     if (RobotBase.isSimulation()) {
-      encoderSim.setPosition(position);
+      encoderSim.setPosition(toNativePosition(position));
     }
   }
 
@@ -251,6 +262,6 @@ public class SparkFlexMotor extends BaseMotor {
 
   @Override
   public void setEncoderPosition(double position) {
-    motor.getEncoder().setPosition(position);
+    motor.getEncoder().setPosition(toNativePosition(position));
   }
 }
