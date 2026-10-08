@@ -7,7 +7,7 @@ package first.robot;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.driverstation.Gamepad;
 import org.wpilib.framework.TimedRobot;
-
+import org.wpilib.telemetry.Telemetry;
 
 import first.demacia.utils.chassis.Chassis;
 import first.demacia.utils.chassis.DriveCommand;
@@ -22,17 +22,17 @@ import first.robot.chassis.RobotChassisConstants;
  * this project, you must also update the manifest file in the resource directory.
  */
 public class Robot extends TimedRobot {
-  private final Gamepad controller = new Gamepad(0);
+  // private final Gamepad controller = new Gamepad(0);
 
   /** Called once at the beginning of the robot program. */
   public Robot() {
-    Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
+    // Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
     
-    new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
-    configureBindings();
-    setDefaultCommands();
-    setController();
-
+    // new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
+    // configureBindings();
+    // setDefaultCommands();
+    // setController();
+    
 
   }
 
@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
   }
 
   private void setDefaultCommands() {
-     Chassis.getInstance().setDefaultCommand(new DriveCommand(Chassis.getInstance(), controller));
+    //  Chassis.getInstance().setDefaultCommand(new DriveCommand(Chassis.getInstance(), controller));
   }
 
   private void setController() {
@@ -63,6 +63,7 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
   }
 
 
@@ -86,7 +87,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during teleoperated mode. */
   @Override
   public void teleopPeriodic() {
-    
   }
 
   /** This function is called once each time the robot enters utility mode. */

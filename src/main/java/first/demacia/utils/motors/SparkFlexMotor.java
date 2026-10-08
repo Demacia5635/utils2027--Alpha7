@@ -9,7 +9,6 @@ import com.revrobotics.spark.SparkLowLevel.ControlType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import org.wpilib.hardware.bus.CANPort;
 
 import org.wpilib.framework.RobotBase;
 import org.wpilib.system.Timer;
