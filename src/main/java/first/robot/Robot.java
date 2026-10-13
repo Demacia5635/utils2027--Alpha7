@@ -5,9 +5,14 @@
 package first.robot;
 
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.InstantCommand;
+import org.wpilib.command2.button.Trigger;
 import org.wpilib.driverstation.Gamepad;
 import org.wpilib.framework.TimedRobot;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.telemetry.Telemetry;
+import org.wpilib.tunable.TunableBoolean;
+import org.wpilib.tunable.Tunables;
 
 import first.demacia.utils.chassis.Chassis;
 import first.demacia.utils.chassis.DriveCommand;
@@ -22,11 +27,14 @@ import first.robot.chassis.RobotChassisConstants;
  * this project, you must also update the manifest file in the resource directory.
  */
 public class Robot extends TimedRobot {
-  // private final Gamepad controller = new Gamepad(0);
+   private final Gamepad controller = new Gamepad(0);
 
   /** Called once at the beginning of the robot program. */
   public Robot() {
-    // Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
+    Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
+    Tunables.publish("publish", new DriveCommand(Chassis.getInstance(), controller));
+      TunableBoolean driveToggle = Tunables.addBoolean("DRIVE COMMAND", false);
+      new Trigger(driveToggle).whileTrue(new DriveCommand(Chassis.getInstance(), controller));
     
     // new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
     // configureBindings();
@@ -41,7 +49,7 @@ public class Robot extends TimedRobot {
   }
 
   private void setDefaultCommands() {
-    //  Chassis.getInstance().setDefaultCommand(new DriveCommand(Chassis.getInstance(), controller));
+      // Chassis.getInstance().setDefaultCommand(new DriveCommand(Chassis.getInstance(), controller));
   }
 
   private void setController() {
