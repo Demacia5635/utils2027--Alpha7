@@ -153,9 +153,21 @@ public class Log extends SubsystemBase {
    * @return The created ConsoleAlert
    */
   public static ConsoleAlert log(Object message, Level level) {
-    DataLogManager.log(String.valueOf(message));
+    String text = String.valueOf(message);
+    DataLogManager.log(text);
 
-    ConsoleAlert alert = new ConsoleAlert(String.valueOf(message), level);
+    // WPILib allows only one live Alert per (group, text) - reuse it instead of allocating a duplicate
+    for (int i = 0; i < activeConsole.size(); i++) {
+      ConsoleAlert existing = activeConsole.get(i);
+      if (existing.getText().equals(text)) {
+        existing.setText(text);
+        activeConsole.remove(i);
+        activeConsole.add(existing);
+        return existing;
+      }
+    }
+
+    ConsoleAlert alert = new ConsoleAlert(text, level);
     alert.set(true);
     if (activeConsole.size() > ConsoleConstants.CONSOLE_LIMIT) {
       activeConsole.get(0).close();
@@ -187,6 +199,7 @@ public class Log extends SubsystemBase {
       ConsoleAlert alert = activeConsole.get(i);
       if (alert.isTimerOver()) {
         alert.set(false);
+        alert.close();
         activeConsole.remove(i);
       }
     }

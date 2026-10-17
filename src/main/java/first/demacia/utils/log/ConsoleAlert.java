@@ -13,13 +13,16 @@ public class ConsoleAlert extends Alert {
   /** The timer that tracks the duration of the alert */
   Timer timer;
 
+  /** Counter for generating unique alert ids - WPILib requires a unique id per group */
+  private static int nextId = 0;
+
   /**
    * Creates a new Console Alert
    * @param text the text to display
    * @param type the type of alert (Info, Warning, Error)
    */
   public ConsoleAlert(String text, Level level) {
-    super("console", text, level);
+    super("console", "console" + nextId++, text, level);
     timer = new Timer();
   }
 
