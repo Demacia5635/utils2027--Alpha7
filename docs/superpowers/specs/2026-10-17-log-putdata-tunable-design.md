@@ -81,12 +81,31 @@ No new error paths. Behavior on a duplicate name is exactly what `Tunables.publi
 
 ## Testing
 
-The repo has no unit tests (`src/test` is empty) and Tunables/DataLog need the HAL, so TDD is not
-practical here. Verification:
-1. `frc_verify_code` (season 2027) on every touched file — 0 errors.
-2. `gradlew compileJava` — succeeds.
-3. Simulation check (manual): `motors/<name>/test Value` appears as an editable Tunable in Elastic,
-   editing it changes `getTestValue()`, and the value appears in the log (`/Log/motors/<name>/test Value`).
+TDD with JUnit 5. `build.gradle` already declares JUnit Jupiter and `wpi.java.configureTestTasks(test)`,
+which loads the simulated HAL, so Tunables / NetworkTables / DataLog work in tests. `src/test` does not
+exist yet and will be created.
+
+**Process note:** the implementation was written before this spec (a process slip). To keep TDD honest,
+the plan first removes the two overloads and the `BaseMotor` change, writes each test, watches it fail
+(compile failure counts as RED), then restores the minimal code (GREEN).
+
+Tests (`src/test/java/first/demacia/utils/log/LogPutDataTunableTest.java`), using unique names per test:
+1. **double — logged:** after `Log.putData(name, getter, setter)` and one `periodic()`, the NetworkTables
+   topic `/Log/<name>` holds the getter's value.
+2. **double — tunable published:** a Tunable exists at `name`, and its value equals the getter's value.
+3. **double — setter wired:** changing the Tunable's value from the dashboard side calls the setter with
+   that value.
+4. **boolean — the same three checks** for the boolean overload.
+
+Open question for the plan (to resolve by reading the 2027 Tunables API with frc-mcp): how a test
+reaches the Tunable at `name` and triggers the setter — e.g. through the Tunables NetworkTables topic
+plus whatever update/poll call the Tunables backend needs. If the setter cannot be triggered
+deterministically in a unit test, test 3 becomes a documented manual simulation check.
+
+Additional verification:
+- `frc_verify_code` (season 2027) on every touched file — 0 errors.
+- `gradlew test` and `gradlew compileJava` — pass.
+- Manual simulation check: `motors/<name>/test Value` is editable in Elastic and appears in the log.
 
 ## Out of scope
 
