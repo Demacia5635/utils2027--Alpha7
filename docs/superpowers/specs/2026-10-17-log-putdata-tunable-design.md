@@ -97,10 +97,13 @@ Tests (`src/test/java/first/demacia/utils/log/LogPutDataTunableTest.java`), usin
    that value.
 4. **boolean — the same three checks** for the boolean overload.
 
-Open question for the plan (to resolve by reading the 2027 Tunables API with frc-mcp): how a test
-reaches the Tunable at `name` and triggers the setter — e.g. through the Tunables NetworkTables topic
-plus whatever update/poll call the Tunables backend needs. If the setter cannot be triggered
-deterministically in a unit test, test 3 becomes a documented manual simulation check.
+Resolved during planning: WPILib 2027 ships `org.wpilib.tunable.MockTunableBackend`. A test registers it
+with `TunableRegistry.registerBackend("/", backend)`, reads with `backend.getDouble(name)`, and simulates a
+dashboard edit with `backend.setDouble(name, v)` followed by `TunableRegistry.update()` — so test 3 is
+automated.
+
+Added during planning: a `null` getter or setter throws `NullPointerException` at registration
+(2026 allowed a `null` setter for read-only; in 2027 read-only values use `putData(name, supplier)`).
 
 Additional verification:
 - `frc_verify_code` (season 2027) on every touched file — 0 errors.
