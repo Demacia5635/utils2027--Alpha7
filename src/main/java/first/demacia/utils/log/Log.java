@@ -92,6 +92,7 @@ public class Log extends SubsystemBase {
     DataLogManager.start();
     DataLogManager.logNetworkTables(false);
     log = DataLogManager.getLog();
+    TelemetryFileLogging.install(NetworkTableInstance.getDefault(), log);
     DriverStation.startDataLog(log);
 
     activeConsole = new ArrayList<>();

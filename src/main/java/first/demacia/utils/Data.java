@@ -4,8 +4,11 @@ package first.demacia.utils;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.wpilib.util.WPIUtilJNI;
+
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
+import com.ctre.phoenix6.Utils;
 
 /**
  * A generic wrapper class for data sources (StatusSignals or Suppliers).
@@ -304,8 +307,25 @@ public class Data<T> {
      */
     public long getTime() {
         return (signal != null) ?
-            (long) (signal.getTimestamp().getTime() * 1000) 
+            toLogTimestamp(signal.getTimestamp().getTime(), Utils.getCurrentTimeSeconds(), WPIUtilJNI.now())
                 : 0;
+    }
+
+    /**
+     * Converts a Phoenix signal timestamp to a DataLog timestamp.
+     * <p>
+     * Phoenix reports seconds in its own time base, while DataLog expects nanoseconds in the
+     * {@link WPIUtilJNI#now()} time base, so the signal's age is measured on the Phoenix clock
+     * and subtracted from the log clock.
+     * </p>
+     *
+     * @param signalTimeSeconds When the signal was sampled, on the Phoenix clock
+     * @param phoenixNowSeconds The current time on the Phoenix clock
+     * @param logNowNanos       The current time on the log clock
+     * @return The sample time on the log clock, in nanoseconds
+     */
+    public static long toLogTimestamp(double signalTimeSeconds, double phoenixNowSeconds, long logNowNanos) {
+        return logNowNanos - Math.round((phoenixNowSeconds - signalTimeSeconds) * 1e9);
     }
 
     public boolean isDouble() {
