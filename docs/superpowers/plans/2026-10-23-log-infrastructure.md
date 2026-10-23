@@ -30,6 +30,7 @@ Phoenix 6 26.70.0-alpha-2, JUnit 5, GradleRIO.
 - Run tests with `./gradlew test --offline`; one class with `--tests <fqcn>`.
 - Every test that registers a WPILib backend calls `TelemetryRegistry.reset()` / `TunableRegistry.reset()` in `@AfterEach`, **before** closing any `DataLog`.
 - An in-memory `DataLogWriter` writes to its stream only on `flush()`; call it before reading.
+- Read DataLogs in tests with `DataLogReader.forEach(...)`, never a for-each loop: WPILib's `DataLogIterator.hasNext()` requires 16 bytes left and silently drops a last record shorter than that (a double with a 4-byte timestamp is 15 bytes), so results depend on the machine's uptime.
 - The working tree on this branch may carry uncommitted `Log.putData(name, getter, setter)` overloads in `Log.java` and one `BaseMotor.java` line using them. They are superseded by `Log.tune` (Task 6/7). Never commit them as they are; never commit files a task does not list.
 
 ## Review Focus

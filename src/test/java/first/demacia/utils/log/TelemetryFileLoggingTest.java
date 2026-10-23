@@ -64,7 +64,9 @@ class TelemetryFileLoggingTest {
   private static Map<String, Double> readLastDoubles(byte[] file) {
     Map<Integer, String> names = new HashMap<>();
     Map<String, Double> values = new HashMap<>();
-    for (DataLogRecord record : new DataLogReader(ByteBuffer.wrap(file))) {
+    // forEach, not a for-each loop: DataLogIterator.hasNext() needs 16 bytes left, so it drops a
+    // last record shorter than that (a double with a 4-byte timestamp is 15 bytes)
+    new DataLogReader(ByteBuffer.wrap(file)).forEach(record -> {
       if (record.isStart()) {
         DataLogRecord.StartRecordData start = record.getStartData();
         if (start.type.equals("double")) {
@@ -73,7 +75,7 @@ class TelemetryFileLoggingTest {
       } else if (!record.isControl() && names.containsKey(record.getEntry())) {
         values.put(names.get(record.getEntry()), record.getDouble());
       }
-    }
+    });
     return values;
   }
 }
