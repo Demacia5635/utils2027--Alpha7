@@ -20,6 +20,7 @@ import org.wpilib.driverstation.DriverStation;
 import org.wpilib.util.Alert.Level;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.telemetry.TelemetryLoggable;
+import org.wpilib.telemetry.TelemetryRegistry;
 import org.wpilib.tunable.ComplexTunable;
 import org.wpilib.tunable.Tunables;
 import org.wpilib.tunable.TunableBoolean;
@@ -60,6 +61,8 @@ public class Log extends SubsystemBase {
 
   /** The main DataLog instance for file writing */
   public static DataLog log;
+  /** Telemetry paths hidden from the dashboard in competition */
+  private static final DebugPaths debugPaths = new DebugPaths();
   /** The NetworkTable instance for the "Log" table */
   public static NetworkTable table = NetworkTableInstance.getDefault().getTable("Log");
 
@@ -92,7 +95,8 @@ public class Log extends SubsystemBase {
     DataLogManager.start();
     DataLogManager.logNetworkTables(false);
     log = DataLogManager.getLog();
-    TelemetryFileLogging.install(NetworkTableInstance.getDefault(), log);
+    TelemetryRegistry.registerBackend("", LogBackend.create(
+        NetworkTableInstance.getDefault(), log, debugPaths, RobotCommon::getIsComp));
     DriverStation.startDataLog(log);
 
     activeConsole = new ArrayList<>();
