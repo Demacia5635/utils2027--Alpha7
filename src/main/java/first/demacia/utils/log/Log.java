@@ -53,8 +53,17 @@ public class Log extends SubsystemBase {
     LOG_AND_NT_NOT_IN_COMP, 
     /** Log to file and NetworkTables */
     LOG_AND_NT
-  } 
+  }
 
+  /**
+   * Where a logged value is shown.
+   */
+  public static enum Dashboard {
+    /** Written to the log file and the dashboard */
+    ALWAYS,
+    /** Written to the log file always, and to the dashboard only outside competition */
+    DEBUG
+  }
 
   /** Singleton instance of the LogManager */
   private static Log logManager;
