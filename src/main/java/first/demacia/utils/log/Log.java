@@ -38,6 +38,12 @@ import first.demacia.utils.sysid.SysidCommand;
  * editable values under {@code /Tunables}. Values registered as {@link Dashboard#DEBUG} stop
  * updating the dashboard while the robot is in competition.
  * </p>
+ * <p>
+ * Do not call {@code Log} from static initializers that run before the {@code Robot} constructor:
+ * {@code RobotBase} registers its own telemetry backends then and would replace the log backend.
+ * Choose {@link Dashboard#DEBUG} before the first write to a path. A chooser registered at a
+ * path that is already in use is returned unpublished.
+ * </p>
  */
 public class Log extends SubsystemBase {
 

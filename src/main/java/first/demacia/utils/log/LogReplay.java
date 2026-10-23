@@ -110,6 +110,9 @@ public class LogReplay {
 
     
     public static void loadLogs() {
+        for (ReplayEntry old : replayEntries) {
+            Log.remove("replay/" + old.path);
+        }
         replayEntries.clear();
 
         try {

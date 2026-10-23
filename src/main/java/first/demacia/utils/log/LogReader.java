@@ -122,7 +122,8 @@ public class LogReader {
         if (RobotBase.isSimulation()) {
             logDir = new File("logs/");
         } else {
-            logDir = new File("/home/lvuser/logs/");
+            // alpha-7 DataLogManager writes here (only call this on the robot: needs natives)
+            logDir = new File(DataLogManager.getLogDir());
         }
 
         if (!logDir.exists()) {
