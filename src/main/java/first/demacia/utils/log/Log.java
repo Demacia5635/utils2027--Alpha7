@@ -4,9 +4,6 @@
 
 package first.demacia.utils.log;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
@@ -16,9 +13,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import org.wpilib.networktables.ConnectionInfo;
-import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
-import com.ctre.phoenix6.StatusSignal;
 import org.wpilib.system.DataLogManager;
 import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
@@ -27,11 +22,8 @@ import org.wpilib.datalog.DataLog;
 import org.wpilib.driverstation.DriverStation;
 import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.telemetry.Telemetry;
-import org.wpilib.telemetry.TelemetryLoggable;
 import org.wpilib.telemetry.TelemetryRegistry;
-import org.wpilib.tunable.ComplexTunable;
 import org.wpilib.tunable.TunableRegistry;
-import org.wpilib.tunable.Tunables;
 import org.wpilib.util.function.BooleanConsumer;
 
 import first.demacia.utils.Data;
@@ -48,24 +40,6 @@ import first.demacia.utils.sysid.SysidCommand;
  * </p>
  */
 public class Log extends SubsystemBase {
-
-  /**
-   * Enumeration for different logging levels.
-   * Defines behavior for file logging and NetworkTables updating, both in and out of competition.
-   *
-   * @deprecated Use {@link Dashboard} with {@link #putData(String, Supplier, Dashboard)}.
-   */
-  @Deprecated
-  public static enum LogLevel {
-    /** Log to file only, but remove entirely during competition */
-    LOG_ONLY_NOT_IN_COMP,
-    /** Log to file only */
-    LOG_ONLY,
-    /** Log to file and NetworkTables only when not in competition */
-    LOG_AND_NT_NOT_IN_COMP,
-    /** Log to file and NetworkTables */
-    LOG_AND_NT
-  }
 
   /**
    * Where a logged value is shown.
@@ -92,16 +66,6 @@ public class Log extends SubsystemBase {
   /** Singleton instance, runs {@link #periodic()} */
   private static Log logManager;
 
-  /** The main DataLog instance for file writing */
-  public static DataLog log;
-  /**
-   * The NetworkTable instance for the "Log" table.
-   *
-   * @deprecated Used only by the deprecated {@link LogEntry}; values now go to {@code /Telemetry}.
-   */
-  @Deprecated
-  public static NetworkTable table;
-
   /** Telemetry paths hidden from the dashboard in competition */
   private static DebugPaths debugPaths;
   /** Root of the telemetry paths, for one-time values */
@@ -122,19 +86,6 @@ public class Log extends SubsystemBase {
   /** True while a message is being written, so a warning raised by writing it does not re-enter Messages */
   private static boolean writingMessage;
 
-  /** List of individual log entries that are not grouped */
-  private ArrayList<LogEntry<?>> individualLogEntries = new ArrayList<>();
-
-  private LogEntry<float[]> groupFloatEntry;
-  private LogEntry<boolean[]> groupBooleanEntry;
-  private LogEntry<String[]> groupStringEntry;
-
-  /**
-   * Objects that are re-logged to Telemetry every loop, keyed by their telemetry path.
-   * Kept for the deprecated {@link #publishTelemetry}.
-   */
-  private final Map<String, TelemetryLoggable> telemetryObjects = new LinkedHashMap<>();
-
   // Runs after every static field above is initialized, so start() may use them.
   static {
     start();
@@ -153,9 +104,8 @@ public class Log extends SubsystemBase {
     }
     DataLogManager.start();
     DataLogManager.logNetworkTables(false);
-    log = DataLogManager.getLog();
+    DataLog log = DataLogManager.getLog();
     DriverStation.startDataLog(log);
-    table = NetworkTableInstance.getDefault().getTable("Log");
 
     // Messages first: every warning below is reported through it
     messages = new Messages(DataLogManager::log);
@@ -217,20 +167,6 @@ public class Log extends SubsystemBase {
       messages.update();
     }
 
-    // Deprecated API, removed with it
-    for (int i = 0; i < individualLogEntries.size(); i++) {
-      individualLogEntries.get(i).log();
-    }
-    if (groupFloatEntry != null) {
-      groupFloatEntry.log();
-    }
-    if (groupBooleanEntry != null) {
-      groupBooleanEntry.log();
-    }
-    if (groupStringEntry != null) {
-      groupStringEntry.log();
-    }
-    telemetryObjects.forEach(Telemetry::log);
   }
 
   // ---------------------------------------------------------------- recording values
@@ -456,187 +392,5 @@ public class Log extends SubsystemBase {
    */
   public static void alert(String message) {
     alerts.alert(message);
-  }
-
-  // ---------------------------------------------------------------- deprecated API
-
-  /**
-   * Removes non-essential log entries when in competition mode.
-   *
-   * @deprecated Register values with {@link Dashboard#DEBUG}; competition mode is applied automatically.
-   */
-  @Deprecated
-  public static void removeInComp() {
-    if (logManager == null)
-      return;
-
-    for (int i = 0; i < logManager.individualLogEntries.size(); i++) {
-      LogEntry<?> entry = logManager.individualLogEntries.get(i);
-      entry.removeInComp();
-      if (entry.getLogLevel() == LogLevel.LOG_ONLY_NOT_IN_COMP
-          || logManager.individualLogEntries.get(i).getLogLevel() == LogLevel.LOG_AND_NT_NOT_IN_COMP) {
-        logManager.individualLogEntries.remove(i);
-        i--;
-      }
-    }
-  }
-
-  /**
-   * Clears all log entries from the manager.
-   *
-   * @deprecated Use {@link #remove(String)}.
-   */
-  @Deprecated
-  public static void clearEntries() {
-    if (logManager != null) {
-      logManager.individualLogEntries.clear();
-    }
-  }
-
-  /**
-   * Registers an object to be logged to Telemetry every loop.
-   *
-   * @param path     The telemetry path (for example {@code "motors/intake"})
-   * @param loggable The object to log
-   * @deprecated Implement {@link Loggable} and use {@link #putData(String, Loggable)}.
-   */
-  @Deprecated
-  public static void publishTelemetry(String path, TelemetryLoggable loggable) {
-    logManager.telemetryObjects.put(path, loggable);
-  }
-
-  /**
-   * Stops logging an object that was registered with {@link #publishTelemetry}.
-   *
-   * @param path The telemetry path the object was registered with
-   * @deprecated Use {@link #remove(String)}.
-   */
-  @Deprecated
-  public static void removeTelemetry(String path) {
-    logManager.telemetryObjects.remove(path);
-  }
-
-  /**
-   * Publishes an editable object.
-   *
-   * @param key     The dashboard path
-   * @param tunable The object
-   * @deprecated Use {@link #tune(String, String, TunableGroup)}.
-   */
-  @Deprecated
-  public static void putData(String key, ComplexTunable tunable) {
-    Tunables.publish(key, tunable);
-  }
-
-  /**
-   * Starts building a new log entry from a Phoenix6 StatusSignal.
-   *
-   * @param <T>          The type of data
-   * @param name         The name of the log entry
-   * @param statusSignal The signal to log
-   * @param isRio        Whether the signal is on the RIO CAN bus
-   * @return The log entry
-   * @deprecated Use {@link #putData(String, Supplier)}.
-   */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, StatusSignal<T> statusSignal, boolean isRio) {
-    return putData(name, new StatusSignal[] {statusSignal}, LogLevel.LOG_AND_NT, "", true, isRio);
-  }
-
-  /**
-   * Starts building a new log entry from data.
-   *
-   * @param <T>  The type of data
-   * @param name The name of the log entry
-   * @param data The data to log
-   * @return The log entry
-   * @deprecated Use {@link #putData(String, Supplier)}.
-   */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, Data<T> data) {
-    return putData(name, new Data[] {data}, LogLevel.LOG_AND_NT, "", true);
-  }
-
-  /**
-   * @deprecated Use {@link #putData(String, Loggable)} with {@link LogTable#recordEveryLoop}.
-   */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, StatusSignal<T>[] statusSignals, LogLevel logLevel, String metaData, boolean isSeparated, boolean isRio) {
-    Data<T>[] data;
-    data = (Data<T>[]) new Data[statusSignals.length];
-    for (int i = 0; i < statusSignals.length; i++) {
-        data[i] = new Data<>(statusSignals[i], isRio);
-    }
-    return putData(name, data, logLevel, metaData, isSeparated);
-  }
-
-  /**
-   * @deprecated Use {@link #putData(String, Supplier, Dashboard)}.
-   */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, Supplier<T>[] suppliers, LogLevel logLevel, String metaData, boolean isSeparated) {
-    Data<T>[] data;
-    data = (Data<T>[]) new Data[suppliers.length];
-    for (int i = 0; i < suppliers.length; i++) {
-        data[i] = new Data<>(suppliers[i]);
-    }
-    return putData(name, data, logLevel, metaData, isSeparated);
-  }
-
-  /**
-   * Internal method to add a log entry to the manager.
-   *
-   * @param <T>         The data type
-   * @param name        Name of the entry
-   * @param data        Data wrapper
-   * @param logLevel    Logging level
-   * @param metaData    Metadata
-   * @param isSeparated Whether to force a separate entry
-   * @return The created or updated LogEntry
-   * @deprecated Use {@link #putData(String, Supplier, Dashboard)} or {@link #putData(String, Loggable, Dashboard)}.
-   */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public static <T> LogEntry<T> putData(String name, Data<T>[] data, LogLevel logLevel, String metaData, boolean isSeparated) {
-    LogEntry<T> entry = null;
-
-    if (isSeparated && data.length == 1) {
-      entry = new LogEntry<T>(name, data[0], logLevel, metaData);
-      logManager.individualLogEntries.add(entry);
-    } else {
-      if (data[0].isDouble()) {
-        Data.addToGroupFloat(name, metaData, data);
-        if (logManager.groupFloatEntry == null){
-          logManager.groupFloatEntry = new LogEntry<float[]>(Data.getGroupFloatName(), () -> Data.getGroupFloat(), LogLevel.LOG_ONLY, Data.getGroupDoubleMetaData(), true, false);
-        } else {
-          logManager.groupFloatEntry.initialize(Data.getGroupFloatName(), () -> Data.getGroupFloat(), LogLevel.LOG_ONLY, Data.getGroupDoubleMetaData(), true, false);
-        }
-        entry = (LogEntry<T>) logManager.groupFloatEntry;
-
-      } else if (data[0].isBoolean()) {
-        Data.addToGroupBoolean(name, metaData, data);
-        if (logManager.groupBooleanEntry == null){
-          logManager.groupBooleanEntry = new LogEntry<boolean[]>(Data.getGroupBooleanName(), () -> Data.getGroupBoolean(), LogLevel.LOG_ONLY, Data.getGroupBooleanMetaData(), false, true);
-        } else {
-          logManager.groupBooleanEntry.initialize(Data.getGroupBooleanName(), () -> Data.getGroupBoolean(), LogLevel.LOG_ONLY, Data.getGroupBooleanMetaData(), false, true);
-        }
-        entry = (LogEntry<T>) logManager.groupBooleanEntry;
-
-      } else {
-        Data.addToGroupString(name, metaData, data);
-        if (logManager.groupStringEntry == null){
-          logManager.groupStringEntry = new LogEntry<String[]>(Data.getGroupStringName(), () -> Data.getGroupString(), LogLevel.LOG_ONLY, Data.getGroupStringMetaData(), false, false);
-        } else {
-          logManager.groupStringEntry.initialize(Data.getGroupStringName(), () -> Data.getGroupString(), LogLevel.LOG_ONLY, Data.getGroupStringMetaData(), false, false);
-        }
-        entry = (LogEntry<T>) logManager.groupStringEntry;
-      }
-    }
-
-    return entry;
   }
 }

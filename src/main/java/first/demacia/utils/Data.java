@@ -4,11 +4,9 @@ package first.demacia.utils;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
-import org.wpilib.util.WPIUtilJNI;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.StatusSignalCollection;
-import com.ctre.phoenix6.Utils;
 
 /**
  * A generic wrapper class for data sources (StatusSignals or Suppliers).
@@ -32,29 +30,11 @@ public class Data<T> {
     /** List of all Data instances based on Suppliers */
     private static final ArrayList<Data<?>> supplierInstances = new ArrayList<>();
 
-    private static final ArrayList<Data<?>> groupFloatData = new ArrayList<>();
-    private static String groupFloatDataName = "Float/";
-    private static String groupFloatDataMetaData = "";
-    private static float[] groupFloatDataValues = new float[0];
-    private static boolean isGroupFloatFirst = true;
-    private static final ArrayList<Data<?>> groupBooleanData = new ArrayList<>();
-    private static String groupBooleanDataName = "Boolean/";
-    private static String groupBooleanDataMetaData = "";
-    private static boolean[] groupBooleanDataValues = new boolean[0];
-    private static boolean isGroupBooleanFirst = true;
-    private static final ArrayList<Data<?>> groupStringData = new ArrayList<>();
-    private static String groupStringDataName = "String/";
-    private static String groupStringDataMetaData = "";
-    private static String[] groupStringDataValues = new String[0];
-    private static boolean isGroupStringFirst = true;
-
     private StatusSignal<T> signal;
     private Supplier<T> supplier;
 
     private boolean isDouble = false;
     private boolean isBoolean = false;
-
-    private boolean changed = true;
 
     // Cached primitive arrays to avoid auto-boxing and garbage collection
     private double doubleValue;
@@ -161,28 +141,22 @@ public class Data<T> {
 
     /**
      * Updates the internal primitive arrays from the signals.
-     * Sets the 'changed' flag if values have changed.
      */
     private void updateSignalValue() {
-        changed = false;
         if (isDouble) {
             double val = signal.getValueAsDouble();
             if (doubleValue != val) {
-                changed = true;
                 doubleValue = val;
             }
             if (floatValue != val) {
-                changed = true;
                 floatValue = (float) val;
             }
         } else if (isBoolean) {
             if (booleanValue != (Boolean) signal.getValue()) {
-                changed = true;
                 booleanValue = (Boolean) signal.getValue();
             }
         } else {
             if (!Objects.equals(stringValue, ((signal.getValue() == null) ? "null" : signal.getValue().toString()))) {
-                changed = true;
                 stringValue = (signal.getValue() == null) ? "null" : signal.getValue().toString();;
             }
         }
@@ -190,32 +164,26 @@ public class Data<T> {
 
     /**
      * Updates the internal primitive arrays from the suppliers.
-     * Sets the 'changed' flag if values have changed.
      */
     private void refreshSupplier() {
-        changed = false;
         if (isDouble) {
             Number val = ((Number) supplier.get());
             double newVal = val.doubleValue();
             if (doubleValue != newVal) {
-                changed = true;
                 doubleValue = newVal;
             }
             float newFloatVal = val.floatValue();
             if (floatValue != newFloatVal) {
-                changed = true;
                 floatValue = newFloatVal;
             }
         } else if (isBoolean) {
             boolean newVal = (Boolean) supplier.get();
             if (booleanValue != newVal) {
-                changed = true;
                 booleanValue = newVal;
             }
         } else {
             String newVal = (supplier.get() == null) ? "null" : supplier.get().toString();
             if (!Objects.equals(stringValue, newVal)) {
-                changed = true;
                 stringValue = newVal;
             }
         }
@@ -241,13 +209,6 @@ public class Data<T> {
         for (int i = 0; i < supplierInstances.size(); i++) {
             supplierInstances.get(i).refreshSupplier();
         }
-    }
-
-    /**
-     * @return true if the data has changed since the last refresh
-     */
-    public boolean hasChanged() {
-        return changed;
     }
 
     /**
@@ -302,32 +263,6 @@ public class Data<T> {
                 : null;
     }
 
-    /**
-     * @return The timestamp of the signal (in milliseconds) or 0
-     */
-    public long getTime() {
-        return (signal != null) ?
-            toLogTimestamp(signal.getTimestamp().getTime(), Utils.getCurrentTimeSeconds(), WPIUtilJNI.now())
-                : 0;
-    }
-
-    /**
-     * Converts a Phoenix signal timestamp to a DataLog timestamp.
-     * <p>
-     * Phoenix reports seconds in its own time base, while DataLog expects nanoseconds in the
-     * {@link WPIUtilJNI#now()} time base, so the signal's age is measured on the Phoenix clock
-     * and subtracted from the log clock.
-     * </p>
-     *
-     * @param signalTimeSeconds When the signal was sampled, on the Phoenix clock
-     * @param phoenixNowSeconds The current time on the Phoenix clock
-     * @param logNowNanos       The current time on the log clock
-     * @return The sample time on the log clock, in nanoseconds
-     */
-    public static long toLogTimestamp(double signalTimeSeconds, double phoenixNowSeconds, long logNowNanos) {
-        return logNowNanos - Math.round((phoenixNowSeconds - signalTimeSeconds) * 1e9);
-    }
-
     public boolean isDouble() {
         return isDouble;
     }
@@ -336,101 +271,6 @@ public class Data<T> {
         return isBoolean;
     }
 
-    public static void addToGroupFloat(String name, String metaData, Data<?>... data) {
-        for (Data<?> d : data) {
-            groupFloatData.add(d);
-        }
-
-        if (isGroupFloatFirst) {
-            groupFloatDataName += name;
-            groupFloatDataMetaData += metaData;
-            isGroupFloatFirst = false;
-        } else {
-            groupFloatDataName += " | " + name;
-            groupFloatDataMetaData += " | " + metaData;
-        }
-
-        groupFloatDataValues = new float[groupFloatData.size()];
-    }
-
-    public static void addToGroupBoolean(String name, String metaData, Data<?>... data) {
-        for (Data<?> d : data) {
-            groupBooleanData.add(d);
-        }
-
-        if (isGroupBooleanFirst) {
-            groupBooleanDataName += name;
-            groupBooleanDataMetaData += metaData;
-            isGroupBooleanFirst = false;
-        } else {
-            groupBooleanDataName += " | " + name;
-            groupBooleanDataMetaData += " | " + metaData;
-        }
-        
-        groupBooleanDataValues = new boolean[groupBooleanData.size()];
-    }
-
-    public static void addToGroupString(String name, String metaData, Data<?>... data) {
-        for (Data<?> d : data) {
-            groupStringData.add(d);
-        }
-
-        if (isGroupStringFirst) {
-            groupStringDataName += name;
-            groupStringDataMetaData += metaData;
-            isGroupStringFirst = false;
-        } else {
-            groupStringDataName += " | " + name;
-            groupStringDataMetaData += " | " + metaData;
-        }
-        
-        groupStringDataValues = new String[groupStringData.size()];
-    }
-
-    public static float[] getGroupFloat(){
-        for (int i = 0; i < groupFloatData.size(); i++) {
-            groupFloatDataValues[i] = groupFloatData.get(i).getFloat();
-        }
-        return groupFloatDataValues;
-    }
-
-    public static boolean[] getGroupBoolean(){
-        for (int i = 0; i < groupBooleanData.size(); i++) {
-            groupBooleanDataValues[i] = groupBooleanData.get(i).getBoolean();
-        }
-        return groupBooleanDataValues;
-    }
-
-    public static String[] getGroupString(){
-        for (int i = 0; i < groupStringData.size(); i++) {
-            groupStringDataValues[i] = groupStringData.get(i).getString();
-        }
-        return groupStringDataValues;
-    }
-
-    public static String getGroupFloatName() {
-        return groupFloatDataName;
-    }
-
-    public static String getGroupBooleanName() {
-        return groupBooleanDataName;
-    }
-
-    public static String getGroupStringName() {
-        return groupStringDataName;
-    }
-
-    public static String getGroupDoubleMetaData() {
-        return groupFloatDataMetaData;
-    }
-
-    public static String getGroupBooleanMetaData() {
-        return groupBooleanDataMetaData;
-    }
-
-    public static String getGroupStringMetaData() {
-        return groupStringDataMetaData;
-    }
 
     /**
      * Clears all static references and signals.
@@ -440,8 +280,5 @@ public class Data<T> {
         canivoreSignals = new StatusSignalCollection();
         signalInstances.clear();
         supplierInstances.clear();
-        groupFloatData.clear();
-        groupBooleanData.clear();
-        groupStringData.clear();
     }
 }
