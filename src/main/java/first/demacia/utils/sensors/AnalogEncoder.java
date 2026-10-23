@@ -1,13 +1,11 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
 
-import java.util.function.Supplier;
 
 
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 
 /**
  * Analog absolute encoder wrapper (e.g., MA3, REV Through Bore).
@@ -49,8 +47,7 @@ public class AnalogEncoder extends org.wpilib.hardware.rotation.AnalogEncoder im
         super(config.echoChannel, config.fullRange, config.offset);
         this.config = config;
         configEncoder();
-        addLog();
-        Log.publishTelemetry("sensors/" + config.name, this);
+        Log.putData("sensors/" + config.name, this);
         Log.log(getName() + " analog encoder initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -60,14 +57,6 @@ public class AnalogEncoder extends org.wpilib.hardware.rotation.AnalogEncoder im
         setVoltagePercentageRange(config.minRange, config.maxRange);
     }
 
-    @SuppressWarnings("unchecked")
-    private void addLog() {
-        Log.putData(getName() + ": Position", 
-            new Supplier[]{
-                this::get
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-    }
 
     /**
      * Checks sensor health (no-op for analog inputs).
@@ -105,13 +94,13 @@ public class AnalogEncoder extends org.wpilib.hardware.rotation.AnalogEncoder im
     }
     
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("value", get());
-        table.log("Position", get());
+    public void log(LogTable table) {
+        table.put("value", get());
+        table.put("Position", get());
     }
 
     @Override
-    public String getTelemetryType() {
+    public String logType() {
         return "AbsoluteEncoder";
     }
 }

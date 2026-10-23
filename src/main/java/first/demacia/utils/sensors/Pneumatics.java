@@ -1,13 +1,12 @@
 package first.demacia.utils.sensors;
 
-import java.util.function.Supplier;
-
 import org.wpilib.hardware.pneumatic.Compressor;
 
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
+import first.demacia.utils.log.LogTable;
+import first.demacia.utils.log.Loggable;
 
-public class Pneumatics extends Compressor {
+public class Pneumatics extends Compressor implements Loggable {
     PneumaticsConfig config;
     String name;
 	
@@ -15,26 +14,17 @@ public class Pneumatics extends Compressor {
         super(config.busId, config.moduleType);
         this.config = config;
         this.name= config.name;
-        addLog();
         Log.log(name + " Pneumatics initialized");
+        Log.putData("sensors/" + name, this);
     }
 
-    @SuppressWarnings("unchecked")
-    private void addLog() {
-        Log.putData(name + ": Compressor State, Pressure Switch", 
-            new Supplier[]{
-                this::getCompressorState,
-                this::getPressureSwitch
-            }
-            , LogLevel.LOG_ONLY, "", false);
- 
-        Log.putData(name + ": Current, Analog Voltage, Analog Pressure", 
-            new Supplier[]{
-                this::getCurrent,
-                this::getAnalogVoltage,
-                this::getAnalogPressure
-            }
-        , LogLevel.LOG_ONLY, "", false);
+    @Override
+    public void log(LogTable table) {
+        table.put("Compressor State", getCompressorState());
+        table.put("Pressure Switch", getPressureSwitch());
+        table.put("Current", getCurrent());
+        table.put("Analog Voltage", getAnalogVoltage());
+        table.put("Analog Pressure", getAnalogPressure());
     }
 
     public String getName() {

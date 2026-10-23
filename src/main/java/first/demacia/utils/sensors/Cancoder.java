@@ -1,8 +1,7 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
 
-import java.util.function.Supplier;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -13,7 +12,6 @@ import org.wpilib.system.Timer;
 import first.demacia.utils.Data;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 import first.demacia.utils.motors.BaseMotorConfig.Canbus;
 
 /**
@@ -79,8 +77,7 @@ public class Cancoder extends CANcoder implements AnalogSensorInterface {
         name = config.name;
         configCancoder();
         setStatusSignals();
-        addLog();
-        Log.publishTelemetry("sensors/" + name, this);
+        Log.putData("sensors/" + name, this);
         Log.log(name + " cancoder initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -117,20 +114,6 @@ public class Cancoder extends CANcoder implements AnalogSensorInterface {
         }
     }
 
-    @SuppressWarnings({ "unchecked" })
-    private void addLog() {
-        Log.putData(name + ": abs Position", 
-            new Supplier[]{
-                this::getCurrentAbsPosition
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-            
-        Log.putData(name + ": is Connected", 
-            new Supplier[]{
-                this::isConnected
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-    }
 
     /**
      * Gets the sensor name.
@@ -206,17 +189,17 @@ public class Cancoder extends CANcoder implements AnalogSensorInterface {
     }
     
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("is Connected", isConnected());
-        table.log("value", getCurrentAbsPosition());
-        table.log("Abs Position", getCurrentAbsPosition());
-        table.log("Position", getCurrentPosition());
-        table.log("Velocity", getCurrentVelocity());
-        table.log("Acceleration", getCurrentAcceleration());
+    public void log(LogTable table) {
+        table.put("is Connected", isConnected());
+        table.put("value", getCurrentAbsPosition());
+        table.put("Abs Position", getCurrentAbsPosition());
+        table.put("Position", getCurrentPosition());
+        table.put("Velocity", getCurrentVelocity());
+        table.put("Acceleration", getCurrentAcceleration());
     }
 
     @Override
-    public String getTelemetryType() {
+    public String logType() {
         return "CANcoder";
     }
 }

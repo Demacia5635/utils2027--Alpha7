@@ -1,12 +1,10 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
 
-import java.util.function.Supplier;
 
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 
 import org.wpilib.hardware.rotation.DutyCycleEncoder;
 
@@ -51,8 +49,7 @@ public class DigitalEncoder extends DutyCycleEncoder implements AnalogSensorInte
         this.config = config;
         name = config.name;
         configEncoder();
-        addLog();
-        Log.publishTelemetry("sensors/" + name, this);
+        Log.putData("sensors/" + name, this);
         Log.log(name + " digital encoder initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -63,14 +60,6 @@ public class DigitalEncoder extends DutyCycleEncoder implements AnalogSensorInte
         setAssumedFrequency(config.frequency);
     }
 
-    @SuppressWarnings("unchecked")
-    private void addLog() {
-        Log.putData(name + ": Position", 
-            new Supplier[]{
-                this::get
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-    }
 
     /**
      * Gets the sensor name.
@@ -110,14 +99,14 @@ public class DigitalEncoder extends DutyCycleEncoder implements AnalogSensorInte
     }
 
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("Position", get());
-        table.log("value", get());
-        table.log("Is Connected", isConnected());
+    public void log(LogTable table) {
+        table.put("Position", get());
+        table.put("value", get());
+        table.put("Is Connected", isConnected());
     }
 
     @Override
-    public String getTelemetryType() {
+    public String logType() {
         return "AbsoluteEncoder";
     }
 }

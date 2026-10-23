@@ -1,13 +1,11 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
 
-import java.util.function.Supplier;
 
 import org.wpilib.hardware.discrete.DigitalInput;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 
 /**
  * Digital limit switch sensor wrapper.
@@ -46,8 +44,7 @@ public class LimitSwitch extends DigitalInput implements DigitalSensorInterface{
         this.config = config;
 		name = config.name;
         configLimitSwitch();
-        addLog();
-        Log.publishTelemetry("sensors/" + config.name, this);
+        Log.putData("sensors/" + config.name, this);
 		Log.log(name + " limit switch initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -56,14 +53,6 @@ public class LimitSwitch extends DigitalInput implements DigitalSensorInterface{
         inverted = config.isInverted;
     }
 
-    @SuppressWarnings("unchecked")
-    private void addLog() {
-        Log.putData(name + ": isTriggered", 
-            new Supplier[]{
-                this::get
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-    }
 
     /**
      * Checks sensor health (no-op for simple digital inputs).
@@ -97,13 +86,14 @@ public class LimitSwitch extends DigitalInput implements DigitalSensorInterface{
     }
 
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("value", get());
-        table.log("Value", get());
+    public void log(LogTable table) {
+        table.put("value", get());
+        table.put("Value", get());
+        table.put("isTriggered", get());
     }
 
     @Override
-    public String getTelemetryType() {
+    public String logType() {
         return "Digital Input";
     }
 }

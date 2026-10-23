@@ -1,12 +1,10 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
-import java.util.function.Supplier;
+import first.demacia.utils.log.LogTable;
 
 import org.wpilib.hardware.discrete.AnalogInput;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 
 /**
  * A wrapper for analog optical sensors that measure voltage levels.
@@ -39,21 +37,11 @@ public class OpticalSensor extends AnalogInput implements SensorInterface {
         super(config.echoChannel);
         this.config = config;
 		name = config.name;
-        addLog();
-        Log.publishTelemetry("sensors/" + config.name, this);
+        Log.putData("sensors/" + config.name, this);
 		Log.log(name + " Optical Sensor initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
     
-    @SuppressWarnings("unchecked")
-    private void addLog() {
-        Log.putData(name + ": value", 
-            new Supplier[]{
-                this::get
-            }
-            , LogLevel.LOG_ONLY, "", false);
-
-    }
     
     /**
      * Gets the sensor name.
@@ -100,8 +88,8 @@ public class OpticalSensor extends AnalogInput implements SensorInterface {
      * Checks sensor health (no-op for analog inputs).
      */
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("value", get());
+    public void log(LogTable table) {
+        table.put("value", get());
     }
 }
 

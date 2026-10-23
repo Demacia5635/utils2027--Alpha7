@@ -1,6 +1,6 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
 import org.wpilib.util.Color;
 
 import com.revrobotics.ColorMatch;
@@ -10,9 +10,7 @@ import com.revrobotics.ColorSensorV3;
 import org.wpilib.hardware.bus.I2C;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 
-import java.util.function.Supplier;
 
 /**
  * A wrapper class for the REV Color Sensor V3 that provides simplified color detection
@@ -51,9 +49,8 @@ public class ColorSensor extends ColorSensorV3 implements ColorSensorInterface {
         matcher = new ColorMatch();
 
         addDefaultColors();
-        addLog();
 
-        Log.publishTelemetry("sensors/" + name, this);
+        Log.putData("sensors/" + name, this);
         Log.log(name + " color sensor initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -65,21 +62,6 @@ public class ColorSensor extends ColorSensorV3 implements ColorSensorInterface {
         matcher.addColorMatch(Color.YELLOW);
     }
 
-    @SuppressWarnings("unchecked")
-    private void addLog() {
-        Log.putData(name + ": Color, Matched Color", 
-            new Supplier[]{
-                this::get,
-                this::getMatchedColorName
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-
-        Log.putData(name + ": Proximity", 
-            new Supplier[]{
-                this::getProximity
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-    }
 
     /**
      * Checks if the sensor electronics are functioning properly.
@@ -193,15 +175,16 @@ public class ColorSensor extends ColorSensorV3 implements ColorSensorInterface {
     }
 
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("value", getProximity());
-        table.log("Proximity", getProximity());
-        table.log("Matched Color", getMatchedColorName());
-        table.log("is Connected", isConnected());
+    public void log(LogTable table) {
+        table.put("value", getProximity());
+        table.put("Proximity", getProximity());
+        table.put("Color", get().toHexString());
+        table.put("Matched Color", getMatchedColorName());
+        table.put("is Connected", isConnected());
     }
 
     @Override
-    public String getTelemetryType() {
+    public String logType() {
         return "Color Sensor";
     }
 }

@@ -1,6 +1,6 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
 
  import com.ctre.phoenix6.hardware.Pigeon2; 
  import com.ctre.phoenix6.configs.Pigeon2Configuration;
@@ -13,9 +13,7 @@ import org.wpilib.system.Timer;
 import first.demacia.utils.Data;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
 import first.demacia.utils.motors.BaseMotorConfig.Canbus;
-import java.util.function.Supplier;
 
 /**
  * CTRE Pigeon2 IMU (Inertial Measurement Unit) wrapper.
@@ -90,8 +88,7 @@ public class Pigeon extends Pigeon2 implements SensorInterface{
         name = config.name;
         configPigeon();
         setStatusSignals();
-        addLog();
-        Log.publishTelemetry("sensors/" + config.name, this);
+        Log.putData("sensors/" + config.name, this);
 		Log.log(name + " pigeon initialized");
         ElasticGenerator.getInstance().registerSensor(this);
     }
@@ -142,22 +139,6 @@ public class Pigeon extends Pigeon2 implements SensorInterface{
         }
     }
 
-    @SuppressWarnings({"unchecked"})
-    private void addLog() {
-        Log.putData(name + ": yaw, pitch, roll", 
-            new Data[]{
-                yawSignal,
-                pitchSignal,
-                rollSignal
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-            
-        Log.putData(name + ": is Connected", 
-            new Supplier[]{
-                this::isConnected
-            }
-            , LogLevel.LOG_ONLY, "sensors", false);
-    }
 
     /**
      * Gets the sensor name.
@@ -358,26 +339,26 @@ public class Pigeon extends Pigeon2 implements SensorInterface{
     }
 
     @Override
-    public void logTo(TelemetryTable table) {
-        table.log("is Connected", isConnected());
-        table.log("value", getCurrentYaw());
-        table.log("yaw", getCurrentYaw());
-        table.log("yaw Degree", getCurrentYawDegree());
-        table.log("pitch", getCurrentPitch());
-        table.log("roll", getCurrentRoll());
-        table.log("x velocity", getXVelocity());
-        table.log("y velocity", getYVelocity());
-        table.log("z velocity", getZVelocity());
-        table.log("x acceleration", getXAcceleration());
-        table.log("y acceleration", getYAcceleration());
-        table.log("z acceleration", getZAcceleration());
-        table.log("x angular acceleration", getXAngularAcceleration());
-        table.log("y angular acceleration", getYAngularAcceleration());
-        table.log("z angular acceleration", getZAngularAcceleration());
+    public void log(LogTable table) {
+        table.put("is Connected", isConnected());
+        table.put("value", getCurrentYaw());
+        table.put("yaw", getCurrentYaw());
+        table.put("yaw Degree", getCurrentYawDegree());
+        table.put("pitch", getCurrentPitch());
+        table.put("roll", getCurrentRoll());
+        table.put("x velocity", getXVelocity());
+        table.put("y velocity", getYVelocity());
+        table.put("z velocity", getZVelocity());
+        table.put("x acceleration", getXAcceleration());
+        table.put("y acceleration", getYAcceleration());
+        table.put("z acceleration", getZAcceleration());
+        table.put("x angular acceleration", getXAngularAcceleration());
+        table.put("y angular acceleration", getYAngularAcceleration());
+        table.put("z angular acceleration", getZAngularAcceleration());
     }
 
     @Override
-    public String getTelemetryType() {
+    public String logType() {
         return "Gyro";
     }
 }

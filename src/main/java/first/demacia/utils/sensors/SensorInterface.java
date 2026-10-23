@@ -1,7 +1,7 @@
 package first.demacia.utils.sensors;
 
-import org.wpilib.telemetry.TelemetryLoggable;
-import org.wpilib.telemetry.TelemetryTable;
+import first.demacia.utils.log.LogTable;
+import first.demacia.utils.log.Loggable;
 
 /**
  * Base interface for all sensors.
@@ -9,11 +9,11 @@ import org.wpilib.telemetry.TelemetryTable;
  * <p>Provides common methods that all sensor types must implement for
  * identification and health monitoring.</p>
  * 
- * <p>Sensors publish their dashboard values through {@link #logTo(TelemetryTable)}.
- * Register a sensor with {@code Log.publishTelemetry("sensors/" + name, this)} so it is
+ * <p>Sensors publish their dashboard values through {@link #log(LogTable)}.
+ * Register a sensor with {@code Log.putData("sensors/" + name, this)} so it is
  * logged every loop.</p>
  */
-public interface SensorInterface extends TelemetryLoggable {
+public interface SensorInterface extends Loggable {
     /**
      * Gets the sensor's configured name.
      * 
@@ -30,5 +30,5 @@ public interface SensorInterface extends TelemetryLoggable {
     public void checkElectronics();
 
     @Override
-    void logTo(TelemetryTable table);
+    void log(LogTable table);
 }
