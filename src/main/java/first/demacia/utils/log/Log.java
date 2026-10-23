@@ -65,6 +65,18 @@ public class Log extends SubsystemBase {
     DEBUG
   }
 
+  /**
+   * How serious a message or alert is. Maps to the WPILib alert levels LOW, MEDIUM and HIGH.
+   */
+  public static enum Severity {
+    /** Information, nothing is wrong */
+    INFO,
+    /** Something needs attention */
+    WARNING,
+    /** Something is broken */
+    ERROR
+  }
+
   /** Singleton instance of the LogManager */
   private static Log logManager;
 
