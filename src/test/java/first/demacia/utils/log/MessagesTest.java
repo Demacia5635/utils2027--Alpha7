@@ -45,4 +45,19 @@ class MessagesTest {
     ConsoleAlert b = log("b", Log.Severity.WARNING);
     assertNotSame(a, b);
   }
+
+  @Test
+  void eleventhMessageEvictsTheOldest() {
+    List<ConsoleAlert> alerts = new ArrayList<>();
+    for (int i = 0; i < 11; i++) {
+      alerts.add(log("message " + i, Log.Severity.INFO));
+    }
+
+    // The most recent ten are still the live, reused instances
+    for (int i = 1; i < 11; i++) {
+      assertSame(alerts.get(i), log("message " + i, Log.Severity.INFO));
+    }
+    // The first one was closed and evicted, so logging it again makes a fresh alert
+    assertNotSame(alerts.get(0), log("message 0", Log.Severity.INFO));
+  }
 }
