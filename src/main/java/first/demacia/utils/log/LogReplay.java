@@ -144,6 +144,9 @@ public class LogReplay {
                     Log.putData("replay/" + replay.path, (Supplier<Boolean>) replay::getBooleanValue);
                 } else if (firstVal instanceof Number) {
                     Log.putData("replay/" + replay.path, (Supplier<Double>) replay::getDoubleValue);
+                } else if (firstVal instanceof double[] || firstVal instanceof boolean[]
+                        || firstVal instanceof long[] || firstVal instanceof String[]) {
+                    Log.putData("replay/" + replay.path, (Supplier<Object>) replay::getValue);
                 } else {
                     Log.putData("replay/" + replay.path, (Supplier<String>) replay::getStringValue);
                 }

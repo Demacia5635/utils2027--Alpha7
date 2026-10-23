@@ -1,5 +1,6 @@
 package first.demacia.utils.log;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -86,9 +87,38 @@ class LogReaderTest {
 
   @Test
   void replayEntriesAreSkipped() {
-    Map<String, List<LogReader.Entry>> groups = readAfterFiveUpdates("replay/motors/arm");
+    values.add("motors/arm", motor(), Log.Dashboard.ALWAYS);
+    values.add("replay/motors/arm", motor(), Log.Dashboard.ALWAYS);
+    for (int i = 0; i < 5; i++) {
+      values.update();
+    }
+    writer.flush();
+    TelemetryRegistry.reset();
+    writer.close();
 
+    Map<String, List<LogReader.Entry>> groups =
+        LogReader.getGroups(file, info -> info.name().startsWith("Telemetry/"));
+
+    assertTrue(groups.containsKey("Telemetry/motors/arm"));
     assertFalse(groups.containsKey("Telemetry/replay/motors/arm"));
-    assertTrue(groups.isEmpty());
+    assertEquals(1, groups.size());
+  }
+
+  @Test
+  void arrayEntryIsReadBackAsArray() {
+    values.add("chassis", table -> table.put("Pose", new double[] {1.0, 2.5, -3.0}),
+        Log.Dashboard.ALWAYS);
+    values.update();
+    writer.flush();
+    TelemetryRegistry.reset();
+    writer.close();
+
+    List<LogReader.Entry> chassis =
+        LogReader.getGroups(file, info -> true).get("Telemetry/chassis");
+
+    assertNotNull(chassis);
+    Object value = chassis.get(0).data.get(0).value;
+    assertTrue(value instanceof double[]);
+    assertArrayEquals(new double[] {1.0, 2.5, -3.0}, (double[]) value);
   }
 }
