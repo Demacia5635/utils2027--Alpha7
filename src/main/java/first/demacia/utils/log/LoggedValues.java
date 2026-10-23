@@ -70,7 +70,9 @@ final class LoggedValues {
         entry.getValue().accept(root);
       } catch (RuntimeException e) {
         if (warned.add(entry.getKey())) {
-          warn.accept("Failed to log " + entry.getKey() + ": " + e);
+          StackTraceElement[] trace = e.getStackTrace();
+          String where = trace.length > 0 ? " at " + trace[0] : "";
+          warn.accept("Failed to log " + entry.getKey() + ": " + e + where);
         }
       }
     }

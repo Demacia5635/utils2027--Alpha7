@@ -128,6 +128,9 @@ public final class LogTable {
       table.log(name, array);
     } else if (value instanceof String[] array) {
       table.log(name, array);
+    } else if (value instanceof Object[] array) {
+      // struct, enum and boxed arrays go to WPILib's log(String, T[])
+      table.log(name, array);
     } else {
       table.log(name, value);
     }

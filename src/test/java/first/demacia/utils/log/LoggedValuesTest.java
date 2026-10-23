@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.telemetry.MockTelemetryBackend;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.telemetry.TelemetryRegistry;
@@ -180,5 +182,26 @@ class LoggedValuesTest {
     assertTrue(backend.getActions().stream().anyMatch(action ->
         action.path().equals("/motors/arm/Voltage")
             && action.value() instanceof MockTelemetryBackend.KeepDuplicateValue));
+  }
+
+  @Test
+  void structArraySupplierIsLoggedAsStructArray() {
+    values.add("arm/poses", () -> new Pose2d[] {new Pose2d(), new Pose2d(1.0, 2.0, new Rotation2d())},
+        Log.Dashboard.ALWAYS);
+
+    values.update();
+
+    assertTrue(backend.getLastAction("/arm/poses").value() instanceof MockTelemetryBackend.LogStructArrayValue);
+  }
+
+  @Test
+  void throwingSupplierWarningNamesTheFailingLine() {
+    values.add("bad", () -> {
+      throw new IllegalStateException("boom");
+    }, Log.Dashboard.ALWAYS);
+
+    values.update();
+
+    assertTrue(warnings.get(0).contains("LoggedValuesTest"), warnings.get(0));
   }
 }
