@@ -1,19 +1,18 @@
 package first.demacia.utils.mechanisms;
 
 
+import first.demacia.utils.log.Chooser;
 import first.demacia.utils.log.Log;
+import first.demacia.utils.log.LogTable;
 import first.demacia.utils.motors.MotorInterface;
 import first.demacia.utils.sensors.SensorInterface;
-import org.wpilib.telemetry.TelemetryTable;
-import org.wpilib.tunable.Selectable;
-import org.wpilib.tunable.Tunables;
 
 /**
  * An extension of BaseMechanism that introduces the concept of States.
  * <p>
  * This class allows controlling the mechanism using a State Machine approach.
  * Each state defines a set of target values (e.g., positions or velocities) for the motors.
- * It includes a {@link Selectable} on the dashboard to manually switch states for testing.
+ * It includes a {@link Chooser} on the dashboard to manually switch states for testing.
  * </p>
  */
 public class StateBaseMechanism extends BaseMechanism {
@@ -30,7 +29,7 @@ public class StateBaseMechanism extends BaseMechanism {
     }
 
     /** Chooser for selecting states via the Dashboard */
-    Selectable<MechanismState> stateChooser = new Selectable<>();
+    Chooser<MechanismState> stateChooser;
     
     /** The current active state */
     public MechanismState state;
@@ -87,6 +86,7 @@ public class StateBaseMechanism extends BaseMechanism {
      * @param enumClass The state Enum class
      */
     private void addNT(Class<? extends MechanismState> enumClass) {
+        stateChooser = Log.chooser(getName() + "/" + getName() + " State Chooser");
         stateChooser.add(TESTING_STATE.name(), TESTING_STATE);
         stateChooser.addDefault(IDLE_STATE.name(), IDLE_STATE);
         state = IDLE_STATE;
@@ -98,9 +98,7 @@ public class StateBaseMechanism extends BaseMechanism {
         // Listener to update the local state variable when dashboard selection changes
         stateChooser.onChange(state -> this.state = state);
         
-        Tunables.publish(getName() + "/" + getName() + " State Chooser", stateChooser);
-        Tunables.getTable(getName()).publishValue(getName() + " Test Values",
-            this::getTestValues, this::setTestValues, double[].class);
+        Log.tuneArray(getName() + "/" + getName() + " Test Values", this::getTestValues, this::setTestValues);
 
         for (int i = 0; i < getState().getValues().length; i++){
             final int index = i;
@@ -127,9 +125,9 @@ public class StateBaseMechanism extends BaseMechanism {
      * as a tunable when the state chooser is created.
      */
     @Override
-    public void logTo(TelemetryTable table) {
-        super.logTo(table);
-        table.log(getName() + " State", (getState() == null) ? "" : getState().name());
+    public void log(LogTable table) {
+        super.log(table);
+        table.put(getName() + " State", (getState() == null) ? "" : getState().name());
     }
 
     /**

@@ -5,12 +5,12 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import org.wpilib.math.util.MathUtil;
-import org.wpilib.telemetry.Telemetry;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.tunable.Tunables;
 import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
+import first.demacia.utils.log.LogTable;
+import first.demacia.utils.log.Loggable;
 import first.demacia.utils.motors.MotorInterface;
 import first.demacia.utils.sensors.SensorInterface;
 
@@ -26,7 +26,7 @@ import first.demacia.utils.sensors.SensorInterface;
  * </ul>
  * </p>
  */
-public class BaseMechanism extends SubsystemBase {
+public class BaseMechanism extends SubsystemBase implements Loggable {
 
     /**
      * Internal class to hold motor instance, limits, current wanted value, and calibration state.
@@ -91,19 +91,19 @@ public class BaseMechanism extends SubsystemBase {
 
         // Create individual Brake/Coast buttons for each motor
         for (String motorName : motorNames) {
-            Tunables.publish(getName() + "/" + motorName + "/set brake " + motorName, 
+            Log.button(getName() + "/" + motorName + "/set brake " + motorName, 
                 new InstantCommand(() -> setNeutralMode(motorName, true)).ignoringDisable(true));
-            Tunables.publish(getName() + "/" + motorName + "/set coast " + motorName, 
+            Log.button(getName() + "/" + motorName + "/set coast " + motorName, 
                 new InstantCommand(() -> setNeutralMode(motorName, false)).ignoringDisable(true));
         }
 
         // Create global Brake/Coast buttons for the whole mechanism
-        Tunables.publish(getName() + "/set coast " + getName(), 
+        Log.button(getName() + "/set coast " + getName(), 
                 new InstantCommand(() -> setNeutralMode(false)).ignoringDisable(true));
-        Tunables.publish(getName() + "/set brake " + getName(), 
+        Log.button(getName() + "/set brake " + getName(), 
                 new InstantCommand(() -> setNeutralMode(true)).ignoringDisable(true));
         
-        Log.publishTelemetry(name, this);
+        Log.putData(name, this);
         ElasticGenerator.getInstance().registerMechanism(this);
     }
 
@@ -115,7 +115,7 @@ public class BaseMechanism extends SubsystemBase {
     public void withPowerCommand(String motorName, DoubleSupplier powerSupplier) {
         ElasticGenerator.getInstance().registerPowerCommand(this, motors.get(motorName).motor);
 
-        Tunables.publish(getName() + "/" + motorName + "/set power command " + motorName, 
+        Log.button(getName() + "/" + motorName + "/set power command " + motorName, 
             new PowerCommand(this, motorName, powerSupplier));
     }
 
@@ -294,7 +294,7 @@ public class BaseMechanism extends SubsystemBase {
         
         ElasticGenerator.getInstance().registerAutoCalibration(this, motors.get(motorName).motor);
     
-        Tunables.publish(getName() + "/" + motorName + "/" + motorName + " manual reset", new InstantCommand(() -> {
+        Log.button(getName() + "/" + motorName + "/" + motorName + " manual reset", new InstantCommand(() -> {
             node.motor.setEncoderPosition(resetPos);
             node.hasCalibrated = true;
             Log.log(node.hasCalibrated);
@@ -772,10 +772,31 @@ public class BaseMechanism extends SubsystemBase {
             node.autoCalibration.run();
         }
 
+    }
+
+    /**
+     * Writes the mechanism's values every loop: the running and default command names (as
+     * WPILib's SubsystemBase did) and each motor's calibration, wanted value and current value.
+     */
+    @Override
+    public void log(LogTable table) {
+        var defaultCommand = getDefaultCommand();
+        table.put(".hasDefault", defaultCommand != null);
+        table.put(".default", defaultCommand != null ? defaultCommand.getName() : "none");
+
+        var currentCommand = getCurrentCommand();
+        table.put(".hasCommand", currentCommand != null);
+        table.put(".command", currentCommand != null ? currentCommand.getName() : "none");
+
         for (int i = 0; i < motorsAmount; i++){
-            Telemetry.log(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " has Calibrated", getIsCalibration(i));
-            Telemetry.log(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " wanted value", motors.get(motorNames[i]).motor.getWantedValue());
-            Telemetry.log(getName() + "/" + motorNames[i] + "/" + motorNames[i] + " current Value", motors.get(motorNames[i]).motor.getCurrentVoltage());
+            table.put(motorNames[i] + "/" + motorNames[i] + " has Calibrated", getIsCalibration(i));
+            table.put(motorNames[i] + "/" + motorNames[i] + " wanted value", motors.get(motorNames[i]).motor.getWantedValue());
+            table.put(motorNames[i] + "/" + motorNames[i] + " current Value", motors.get(motorNames[i]).motor.getCurrentVoltage());
         }
+    }
+
+    @Override
+    public String logType() {
+        return "Subsystem";
     }
 }

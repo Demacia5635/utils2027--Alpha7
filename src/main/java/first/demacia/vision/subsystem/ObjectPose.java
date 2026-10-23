@@ -13,13 +13,14 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.telemetry.TelemetryTable;
 
 import first.demacia.utils.log.Log;
+import first.demacia.utils.log.LogTable;
+import first.demacia.utils.log.Loggable;
 import first.demacia.vision.CameraConfig;
 
 // Subsystem that tracks and calculates the position of a vision target (object) on the field
-public class ObjectPose extends SubsystemBase {
+public class ObjectPose extends SubsystemBase implements Loggable {
   private Translation2d robotToObject;
   private Translation2d cameraToObject;
   private Translation2d OriginToObject;
@@ -55,9 +56,9 @@ public class ObjectPose extends SubsystemBase {
     this.camera = camera;
     Table = NetworkTableInstance.getDefault().getTable(camera.getTableName());
 
-     Log.publishTelemetry("fieldObject" + camera.getName(), field);
-     Log.publishTelemetry("fieldrobot" + camera.getName(), robotfield);
-     Log.publishTelemetry("ObjectPose" + camera.getName(), this);
+     Log.tune("fieldObject" + camera.getName(), field);
+     Log.tune("fieldrobot" + camera.getName(), robotfield);
+     Log.putData("ObjectPose" + camera.getName(), this);
 
   }
 
@@ -130,14 +131,26 @@ public class ObjectPose extends SubsystemBase {
   }
 
   /**
-   * Logs this subsystem to the dashboard.
-   * Adds the X and Y coordinates of the tracked object to the default subsystem telemetry.
+   * Logs this subsystem every loop: the running and default command names (as WPILib's
+   * SubsystemBase did) and the X and Y coordinates of the tracked object.
    */
   @Override
-  public void logTo(TelemetryTable table) {
-    super.logTo(table);
-    table.log(getName() + " object pos X:", getX());
-    table.log(getName() + " object pos Y:", getY());
+  public void log(LogTable table) {
+    var defaultCommand = getDefaultCommand();
+    table.put(".hasDefault", defaultCommand != null);
+    table.put(".default", defaultCommand != null ? defaultCommand.getName() : "none");
+
+    var currentCommand = getCurrentCommand();
+    table.put(".hasCommand", currentCommand != null);
+    table.put(".command", currentCommand != null ? currentCommand.getName() : "none");
+
+    table.put(getName() + " object pos X:", getX());
+    table.put(getName() + " object pos Y:", getY());
+  }
+
+  @Override
+  public String logType() {
+    return "Subsystem";
   }
 
   

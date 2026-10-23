@@ -6,16 +6,13 @@ package first.robot;
 
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.InstantCommand;
-import org.wpilib.command2.button.Trigger;
 import org.wpilib.driverstation.Gamepad;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.telemetry.Telemetry;
-import org.wpilib.tunable.TunableBoolean;
-import org.wpilib.tunable.Tunables;
 
 import first.demacia.utils.chassis.Chassis;
 import first.demacia.utils.chassis.DriveCommand;
+import first.demacia.utils.log.Log;
 import first.demacia.utils.motors.TalonFXConfig;
 import first.demacia.utils.motors.TalonFXMotor;
 import first.demacia.utils.motors.BaseMotorConfig.Canbus;
@@ -32,9 +29,8 @@ public class Robot extends TimedRobot {
   /** Called once at the beginning of the robot program. */
   public Robot() {
     Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
-    Tunables.publish("publish", new DriveCommand(Chassis.getInstance(), controller));
-      TunableBoolean driveToggle = Tunables.addBoolean("DRIVE COMMAND", false);
-      new Trigger(driveToggle).whileTrue(new DriveCommand(Chassis.getInstance(), controller));
+    Log.button("publish", new DriveCommand(Chassis.getInstance(), controller));
+    Log.button("DRIVE COMMAND", new DriveCommand(Chassis.getInstance(), controller));
     
     // new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
     // configureBindings();

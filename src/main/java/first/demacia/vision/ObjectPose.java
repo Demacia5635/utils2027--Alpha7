@@ -12,7 +12,6 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.telemetry.Telemetry;
 
 import first.demacia.utils.log.Log;
 
@@ -56,8 +55,8 @@ public class ObjectPose{
     this.camera = camera;
     Table = NetworkTableInstance.getDefault().getTable(camera.getTableName());
 
-    Log.publishTelemetry("fieldObject" + camera.getName(), field);
-    Log.publishTelemetry("fieldrobot" + camera.getName(), robotfield);
+    Log.tune("fieldObject" + camera.getName(), field);
+    Log.tune("fieldrobot" + camera.getName(), robotfield);
     
     // SmartDashboard.putNumber("tx", camera.getX());
     // SmartDashboard.putNumber("ty", camera.getY());
@@ -79,10 +78,10 @@ public class ObjectPose{
     // Case 1: No current target detected
     if (!hasCurrentTarget) {
       if (hasPreviousTarget) {
-        Telemetry.log("Target Status", "Using Previous (Lost)");
+        Log.put("Target Status", "Using Previous (Lost)");
         return previousObjectPose;
       } else {
-        Telemetry.log("Target Status", "No Target");
+        Log.put("Target Status", "No Target");
         return Pose2d.ZERO;
       }
     }
@@ -110,23 +109,23 @@ public class ObjectPose{
 
       if (!previousInDeadzone && isSameTarget) {
         // Previous is NOT in deadzone and is the same target - use previous
-        Telemetry.log("Target Status", "Using Previous (Current in Deadzone)");
+        Log.put("Target Status", "Using Previous (Current in Deadzone)");
         return previousObjectPose;
       }
     }
 
     // Case 3: Use current target (it's good or we have no better option)
     if (currentInDeadzone) {
-      Telemetry.log("Target Status", "Current (In Deadzone)");
+      Log.put("Target Status", "Current (In Deadzone)");
     } else {
-      Telemetry.log("Target Status", "Current (Good)");
+      Log.put("Target Status", "Current (Good)");
     }
 
     // Update previous for next cycle
     previousObjectPose = currentObjectPose;
     hasPreviousTarget = true;
 
-    Telemetry.log("Distance to Target", currentDistance);
+    Log.put("Distance to Target", currentDistance);
     
     return currentObjectPose;
   }

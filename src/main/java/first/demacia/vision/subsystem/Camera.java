@@ -19,9 +19,6 @@ import first.demacia.utils.elastic.ElasticGenerator;
 import first.demacia.utils.log.Log;
 import first.demacia.vision.CameraConfig;
 import first.demacia.vision.VisionConstants;
-import org.wpilib.tunable.Tunables;
-import org.wpilib.tunable.TunableBoolean;
-import org.wpilib.command2.button.Trigger;
 
 import static first.demacia.vision.VisionConstants.*;
 
@@ -75,28 +72,19 @@ public class Camera extends SubsystemBase {
     // this::getDistanceFromTy).withLogLevel(LogLevel.LOG_AND_NT_NOT_IN_COMP).build();
     Log.putData("tags/" + cameraConfig.getName() + "/" + cameraConfig.getName() + " see tag", () -> isSeeTag());
 
-    Tunables.publish("tags/" + cameraConfig.getName() + "/" + "field-tag " + cameraConfig.getName(), field);
-    TunableBoolean setTo3dTrigger = Tunables.addBoolean(
-        "tags/" + cameraConfig.getName() + "/" + "setTo3d " + cameraConfig.getName(), false);
-    new Trigger(setTo3dTrigger).onTrue(
-        new InstantCommand(() -> setDimension(true)).ignoringDisable(true)
-            .andThen(() -> setTo3dTrigger.set(false)));
+    Log.tune("tags/" + cameraConfig.getName() + "/" + "field-tag " + cameraConfig.getName(), field);
+    Log.button("tags/" + cameraConfig.getName() + "/" + "setTo3d " + cameraConfig.getName(),
+        new InstantCommand(() -> setDimension(true)).ignoringDisable(true));
 
-    TunableBoolean setTo2dTrigger = Tunables.addBoolean(
-        "tags/" + cameraConfig.getName() + "/" + "setTo2d " + cameraConfig.getName(), false);
-    new Trigger(setTo2dTrigger).onTrue(
-        new InstantCommand(() -> setDimension(false)).ignoringDisable(true)
-            .andThen(() -> setTo2dTrigger.set(false)));
+    Log.button("tags/" + cameraConfig.getName() + "/" + "setTo2d " + cameraConfig.getName(),
+        new InstantCommand(() -> setDimension(false)).ignoringDisable(true));
 
-    TunableBoolean resetGyroTrigger = Tunables.addBoolean(
-        "chassis/reset gyro by camera " + cameraConfig.getName(), false);
-    new Trigger(resetGyroTrigger).onTrue(
+    Log.button("chassis/reset gyro by camera " + cameraConfig.getName(),
         Commands.sequence(
             new InstantCommand(() -> changePipeline(5)).ignoringDisable(true),
             new InstantCommand(() -> Chassis.getInstance().setYaw(getRobotAngle())).ignoringDisable(true),
             new InstantCommand(() -> changePipeline(0)).ignoringDisable(true))
-            .ignoringDisable(true)
-            .andThen(() -> resetGyroTrigger.set(false)));
+            .ignoringDisable(true));
     ElasticGenerator.getInstance().registerTag(this);
   }
 

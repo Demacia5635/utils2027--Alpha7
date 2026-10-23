@@ -1,15 +1,16 @@
 package first.demacia.utils;
 
-import org.wpilib.tunable.ComplexTunable;
-import org.wpilib.tunable.TunableTable;
-import org.wpilib.tunable.Tunables;
+import first.demacia.utils.log.Log;
 
-public class RobotCommon implements ComplexTunable {
+public class RobotCommon {
     private static boolean isRed = true;
     private static boolean isComp = false;
 
     static {
-        Tunables.publish("RC", new RobotCommon());
+        Log.tune("RC", "RobotCommon", t -> {
+            t.flag("is red", RobotCommon::getIsRed, RobotCommon::setIsRed);
+            t.flag("is comp", RobotCommon::getIsComp, RobotCommon::setIsComp);
+        });
     }
 
     public static void init() {}
@@ -28,16 +29,5 @@ public class RobotCommon implements ComplexTunable {
 
     public static void setIsComp(boolean newIsComp){
         isComp = newIsComp;
-    }
-
-    @Override
-    public String getTunableType() {
-        return "RobotCommon";
-    }
-
-    @Override
-    public void publishTunable(TunableTable table) {
-        table.publishBoolean("is red", RobotCommon::getIsRed, RobotCommon::setIsRed);
-        table.publishBoolean("is comp", RobotCommon::getIsComp, RobotCommon::setIsComp);
     }
 }

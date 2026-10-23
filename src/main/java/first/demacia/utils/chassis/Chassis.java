@@ -27,9 +27,6 @@ import first.demacia.utils.log.Log;
 import first.demacia.utils.sensors.Cancoder;
 import first.demacia.utils.sensors.Pigeon;
 import first.demacia.vision.subsystem.Vision;
-import org.wpilib.tunable.Tunables;
-import org.wpilib.tunable.TunableBoolean;
-import org.wpilib.command2.button.Trigger;
 
 public class Chassis extends SubsystemBase {
 
@@ -92,32 +89,22 @@ public class Chassis extends SubsystemBase {
     public void addLog() {
     Log.putData("chassis/gyro angle", () -> getGyroAngle().getDegrees());
 
-    Tunables.publish("chassis/field", field);
+    Log.tune("chassis/field", field);
 
-    TunableBoolean resetGyroTrigger = Tunables.addBoolean("chassis/reset gyro", false);
-    new Trigger(resetGyroTrigger).onTrue(
-        new InstantCommand(() -> setYaw(Rotation2d.ZERO)).ignoringDisable(true)
-            .andThen(() -> resetGyroTrigger.set(false)));
+    Log.button("chassis/reset gyro",
+        new InstantCommand(() -> setYaw(Rotation2d.ZERO)).ignoringDisable(true));
 
-    TunableBoolean resetGyro180Trigger = Tunables.addBoolean("chassis/reset gyro 180", false);
-    new Trigger(resetGyro180Trigger).onTrue(
-        new InstantCommand(() -> setYaw(Rotation2d.PI)).ignoringDisable(true)
-            .andThen(() -> resetGyro180Trigger.set(false)));
+    Log.button("chassis/reset gyro 180",
+        new InstantCommand(() -> setYaw(Rotation2d.PI)).ignoringDisable(true));
 
-    TunableBoolean setCoastTrigger = Tunables.addBoolean("chassis/set coast", false);
-    new Trigger(setCoastTrigger).onTrue(
-        new InstantCommand(() -> setNeutralMode(false)).ignoringDisable(true)
-            .andThen(() -> setCoastTrigger.set(false)));
+    Log.button("chassis/set coast",
+        new InstantCommand(() -> setNeutralMode(false)).ignoringDisable(true));
 
-    TunableBoolean setBrakeTrigger = Tunables.addBoolean("chassis/set brake", false);
-    new Trigger(setBrakeTrigger).onTrue(
-        new InstantCommand(() -> setNeutralMode(true)).ignoringDisable(true)
-            .andThen(() -> setBrakeTrigger.set(false)));
+    Log.button("chassis/set brake",
+        new InstantCommand(() -> setNeutralMode(true)).ignoringDisable(true));
 
-    TunableBoolean resetModulesTrigger = Tunables.addBoolean("chassis/reset moduls", false);
-    new Trigger(resetModulesTrigger).onTrue(
-        new InstantCommand(() -> resetMudolse()).ignoringDisable(true)
-            .andThen(() -> resetModulesTrigger.set(false)));
+    Log.button("chassis/reset moduls",
+        new InstantCommand(() -> resetMudolse()).ignoringDisable(true));
 }
 
     public SwerveDrivePoseEstimator getPoseEstimate() {

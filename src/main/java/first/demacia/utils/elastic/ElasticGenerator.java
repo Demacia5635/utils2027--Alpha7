@@ -9,8 +9,6 @@ import java.util.List;
 import org.wpilib.net.WebServer;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.system.Filesystem;
-import org.wpilib.telemetry.Telemetry;
-import org.wpilib.tunable.Tunables;
 import org.wpilib.util.Pair;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.framework.RobotBase;
@@ -46,7 +44,7 @@ public class ElasticGenerator {
     private Cancoder[] chassisCancoders = new Cancoder[4];
 
     private ElasticGenerator() {
-        Tunables.publish("elastic/Generate Layout", new InstantCommand(this::generateAndPublishLayout).ignoringDisable(true));
+        Log.button("elastic/Generate Layout", new InstantCommand(this::generateAndPublishLayout).ignoringDisable(true));
         
         File dir;
         if (RobotBase.isSimulation()) {
@@ -140,11 +138,11 @@ public class ElasticGenerator {
                 StandardOpenOption.WRITE
             );
             
-           Telemetry.log("elastic/Status", "Saved at: " + file.getAbsolutePath());
+            Log.put("elastic/Status", "Saved at: " + file.getAbsolutePath());
             Log.log("Elastic layout saved successfully at: " + file.getAbsolutePath());  
         } catch (IOException e) {
             Log.log("Failed to save Elastic layout: " + e.getMessage());
-           Telemetry.log("elastic/Status", "Failed to save: " + e.getMessage());
+            Log.put("elastic/Status", "Failed to save: " + e.getMessage());
         }
     }
 
@@ -172,9 +170,9 @@ public class ElasticGenerator {
             while (motorIndex < allMotors.size() && row < MAX_ROWS) {
                 MotorInterface motor = allMotors.get(motorIndex);
                 String motorPath = TUNABLES + "motors/" + motor.getName();
-                String logManagerMotorPath = "/Log/motors/" + motor.getName();
+                String motorTelemetryPath = TELEMETRY + "motors/" + motor.getName();
                 
-                widgets.add(createWidget("Boolean Box", motor.getName(), col, row, 1, 1, logManagerMotorPath + "/is Connected", "\"data_type\": \"boolean\""));
+                widgets.add(createWidget("Boolean Box", motor.getName(), col, row, 1, 1, motorTelemetryPath + "/Is Connected", "\"data_type\": \"boolean\""));
                 col++;
                 widgets.add(createWidget("ComboBox Chooser", "Value Control", col, row, 1, 1, motorPath + "/Value Control Mode Chooser", ""));
                 col++;
@@ -184,7 +182,7 @@ public class ElasticGenerator {
                 col += 2;
                 widgets.add(createWidget("Command", "Run", col, row, 1, 1, motorPath + "/test value command", "\"show_type\": true"));
                 col++;
-                widgets.add(createWidget("Text Display", "Current Values", col, row, 1, 1, logManagerMotorPath + "/current value", "\"data_type\": \"double\", \"show_submit_button\": true"));
+                widgets.add(createWidget("Text Display", "Current Values", col, row, 1, 1, motorTelemetryPath + "/Value", "\"data_type\": \"double\", \"show_submit_button\": true"));
                 col++;
 
                 if (col > MAX_COLS - MOTOR_WIDTH) { 
@@ -242,9 +240,9 @@ public class ElasticGenerator {
         }
 
         sb.append(",\n");
-        sb.append(createWidget("Toggle Button", "Reset Gyro", 4, 0, 2, 1, TUNABLES + "chassis/reset gyro", "\"data_type\": \"boolean\""));
+        sb.append(createWidget("Command", "Reset Gyro", 4, 0, 2, 1, TUNABLES + "chassis/reset gyro", "\"show_type\": true"));
         sb.append(",\n");
-        sb.append(createWidget("Toggle Button", "Reset 180", 4, 1, 2, 1, TUNABLES + "chassis/reset gyro 180", "\"data_type\": \"boolean\""));
+        sb.append(createWidget("Command", "Reset 180", 4, 1, 2, 1, TUNABLES + "chassis/reset gyro 180", "\"show_type\": true"));
 
         sb.append(",\n");
         sb.append(createWidget("Command", "Reset Odometry", 8, 0, 2, 1, TUNABLES + "chassis/reset odmetry", "\"show_type\": true"));
@@ -272,9 +270,9 @@ public class ElasticGenerator {
         }
 
         sb.append(",\n");
-        sb.append(createWidget("Toggle Button", "Coast Chassis", 4, 2, 2, 1, TUNABLES + "chassis/set coast", "\"data_type\": \"boolean\""));
+        sb.append(createWidget("Command", "Coast Chassis", 4, 2, 2, 1, TUNABLES + "chassis/set coast", "\"show_type\": true"));
         sb.append(",\n");
-        sb.append(createWidget("Toggle Button", "Brake Chassis", 4, 3, 2, 1, TUNABLES + "chassis/set brake", "\"data_type\": \"boolean\""));
+        sb.append(createWidget("Command", "Brake Chassis", 4, 3, 2, 1, TUNABLES + "chassis/set brake", "\"show_type\": true"));
 
         sb.append("\n        ]\n      }\n    }");
         return sb.toString();
@@ -294,8 +292,8 @@ public class ElasticGenerator {
     
         visionWidgets.add(createWidget("Field", "Quest Robot Field", 0, 0, 2, 3, TUNABLES + "quest/Quest Robot Field", "\"field_rotation\": 90.0"));
         visionWidgets.add(createWidget("Command", "Reset Quest Pose", 0, 3, 2, 1, TUNABLES + "quest/Reset Quest Pose", "\"show_type\": true"));
-        visionWidgets.add(createWidget("Boolean Box", "is quest connected", 0, 4, 1, 1, "/Log/quest/is connected", "\"data_type\": \"boolean\""));
-        visionWidgets.add(createWidget("Boolean Box", "is quest working", 1, 4, 1, 1, "/Log/quest/is working", "\"data_type\": \"boolean\""));
+        visionWidgets.add(createWidget("Boolean Box", "is quest connected", 0, 4, 1, 1, TELEMETRY + "quest/is connected", "\"data_type\": \"boolean\""));
+        visionWidgets.add(createWidget("Boolean Box", "is quest working", 1, 4, 1, 1, TELEMETRY + "quest/is working", "\"data_type\": \"boolean\""));
 
         sb.append(String.join(",\n", visionWidgets));
     
@@ -333,7 +331,7 @@ public class ElasticGenerator {
                 String tagPath = TUNABLES + "tags/" + tag.getName();
     
                 widgets.add(createWidget("Field", tag.getName() + " Field", col, 0, 2, 3, tagPath + "/field-tag " + tag.getName(), "\"field_rotation\": 90.0"));
-                widgets.add(createWidget("Boolean Box", "See " + tag.getName(), col, 3, 1, 1, tagPath + "/" + tag.getName() + " see tag", "\"data_type\": \"boolean\""));
+                widgets.add(createWidget("Boolean Box", "See " + tag.getName(), col, 3, 1, 1, TELEMETRY + "tags/" + tag.getName() + "/" + tag.getName() + " see tag", "\"data_type\": \"boolean\""));
 
                 col += TAG_WIDTH;
                 tagIndex++;
@@ -465,11 +463,11 @@ public class ElasticGenerator {
                 listLayout.append("                \"y\": 0.0,\n");
                 listLayout.append("                \"width\": 128.0,\n");
                 listLayout.append("                \"height\": 128.0,\n");
-                listLayout.append("                \"type\": \"Toggle Button\",\n");
+                listLayout.append("                \"type\": \"Command\",\n");
                 listLayout.append("                \"properties\": {\n");
                 listLayout.append("                  \"topic\": \"").append(motorPath).append("/PID+FF config slot 0/Update\",\n");
-                listLayout.append("                  \"period\": 0.06,\n");
-                listLayout.append("                  \"data_type\": \"boolean\"\n");
+                listLayout.append("                  \"show_type\": true,\n");
+                listLayout.append("                  \"maximize_button_space\": false\n");
                 listLayout.append("                }\n");
                 listLayout.append("              }\n");
                 
@@ -492,7 +490,7 @@ public class ElasticGenerator {
             if (allMotors.isEmpty()) {
                 containers.add(createWidget("Text Display", "Status", 0, 0, 4, 1, "", "\"data_type\": \"string\""));
             } else {
-                containers.add(createWidget("Toggle Button", "sysid Command", 0, 0, 2, 1, TUNABLES + "sysID/sysidCommand", "\"data_type\": \"boolean\""));
+                containers.add(createWidget("Command", "sysid Command", 0, 0, 2, 1, TUNABLES + "sysID/sysidCommand", "\"show_type\": true"));
             }
 
             sb.append(String.join(",\n", containers));
