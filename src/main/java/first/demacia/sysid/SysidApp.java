@@ -99,7 +99,7 @@ class SysidMain {
     public void loadLogFile() {
         try {
             msg("Opening file explorer...");
-            cachedLogData = LogReader.getGroups(false, info -> info.metadata().contains("motor"));
+            cachedLogData = LogReader.getGroups(false, info -> info.name().startsWith("Telemetry/motors/"));
             msg("File loaded successfully. Starting analysis...");
             
             performFullAnalysis(); 

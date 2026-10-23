@@ -3,14 +3,10 @@ package first.demacia.utils.log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import first.demacia.utils.log.Log.LogLevel;
 import first.demacia.utils.log.LogReader.Entry;
 import first.demacia.utils.log.LogReader.EntryPoint;
-import org.wpilib.tunable.ComplexTunable;
-import org.wpilib.tunable.Tunables;
 
-import org.wpilib.tunable.TunableTable;
-public class LogReplay implements ComplexTunable {
+public class LogReplay {
     public static LogReplay instance;
     private double time = 0.0;
     private static long minTime = 0;
@@ -101,7 +97,7 @@ public class LogReplay implements ComplexTunable {
     public static void init() {
         if (instance == null) {
             instance = new LogReplay();
-            Tunables.publish("replay", instance);
+            Log.tune("replay/time", () -> instance.time, LogReplay::setReplayTime);
         }
     }
 
@@ -112,13 +108,13 @@ public class LogReplay implements ComplexTunable {
         return instance;
     }
 
-    @SuppressWarnings("unchecked")
+    
     public static void loadLogs() {
         replayEntries.clear();
 
         try {
             Log.log("Reading log file...");
-            List<Entry> logEntries = LogReader.getEntries(true, null);
+            List<Entry> logEntries = LogReader.getEntries(true, info -> info.name().startsWith("Telemetry/"));
 
             minTime = Long.MAX_VALUE;
             maxTime = Long.MIN_VALUE;
@@ -136,7 +132,8 @@ public class LogReplay implements ComplexTunable {
                 if (entryStart < minTime) minTime = entryStart;
                 if (entryEnd > maxTime) maxTime = entryEnd;
 
-                String replayPath = "replay/" + (entry.groupName.isEmpty() ? "" : entry.groupName + "/") + entry.name;
+                String telemetryPath = (entry.groupName.isEmpty() ? "" : entry.groupName + "/") + entry.name;
+                String replayPath = telemetryPath.startsWith("Telemetry/") ? telemetryPath.substring("Telemetry/".length()) : telemetryPath;
 
                 ReplayEntry replay = new ReplayEntry(replayPath, dataPoints);
                 replayEntries.add(replay);
@@ -144,11 +141,11 @@ public class LogReplay implements ComplexTunable {
                 Object firstVal = dataPoints.get(0).value;
 
                 if (firstVal instanceof Boolean) {
-                    Log.putData(replay.path, new Supplier[] {replay::getBooleanValue}, LogLevel.LOG_AND_NT, "replay", true);
+                    Log.putData("replay/" + replay.path, (Supplier<Boolean>) replay::getBooleanValue);
                 } else if (firstVal instanceof Number) {
-                    Log.putData(replay.path, new Supplier[] {replay::getDoubleValue}, LogLevel.LOG_AND_NT, "replay", true);
+                    Log.putData("replay/" + replay.path, (Supplier<Double>) replay::getDoubleValue);
                 } else {
-                    Log.putData(replay.path, new Supplier[] {replay::getStringValue}, LogLevel.LOG_AND_NT, "replay", true);
+                    Log.putData("replay/" + replay.path, (Supplier<String>) replay::getStringValue);
                 }
             }
 
@@ -177,10 +174,5 @@ public class LogReplay implements ComplexTunable {
         for (ReplayEntry replay : replayEntries) {
             replay.update(target);
         }
-    }
-
-      @Override
-    public void publishTunable(TunableTable table) {
-    table.publishDouble("time", () -> time, LogReplay::setReplayTime);
     }
 }

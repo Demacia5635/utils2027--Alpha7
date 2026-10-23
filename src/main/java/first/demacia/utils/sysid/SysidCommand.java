@@ -12,7 +12,7 @@ import first.demacia.utils.motors.MotorInterface;
 public class SysidCommand extends InstantCommand {
     public SysidCommand() {
         super(() -> {
-            Map<String, List<Entry>> groupedEntries = LogReader.getGroups(true, info -> info.metadata().contains("motor"));
+            Map<String, List<Entry>> groupedEntries = LogReader.getGroups(true, info -> info.name().startsWith("Telemetry/motors/"));
             
             if (groupedEntries == null || groupedEntries.isEmpty()) {
                 Log.log("No motor logs found for SysID analysis.");

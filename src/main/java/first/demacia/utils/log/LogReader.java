@@ -21,6 +21,8 @@ public class LogReader {
 
     private static final Map<Integer, ActiveLogData> activeEntriesMap = new HashMap<>(); // for adding values to entries
 
+    private static final String REPLAY_PREFIX = "Telemetry/replay/";
+
     private static Predicate<EntryInfo> filter;
 
     private record ActiveLogData(String type, List<Entry> targetEntries) {}
@@ -59,17 +61,41 @@ public class LogReader {
         return groups;
     }
 
+    /**
+     * Reads a log file and groups its entries by parent path, for example
+     * {@code "Telemetry/motors/arm"} holds {@code Position}, {@code Velocity}, ...
+     * Entries under {@code Telemetry/replay/} are skipped.
+     *
+     * @param file   The .wpilog file
+     * @param filter Selects the entries to read; null reads all
+     * @return The groups, keyed by parent path
+     */
+    public static Map<String, List<Entry>> getGroups(File file, Predicate<EntryInfo> filter) {
+        processLogFile(file.getAbsolutePath(), filter);
+
+        return groups;
+    }
+
     private static void processLogFile(boolean isLatestLog, Predicate<EntryInfo> filter) {
-        LogReader.filter = filter != null ? filter : info -> true;
-    
-        entries.clear();
-        groups.clear();
-        activeEntriesMap.clear();
-        
         try {
             System.out.println("Reading log file...");
             String filePath = isLatestLog ? loadLatestRobotLog() : LogFileChooser.selectFileFromComputer();
 
+            processLogFile(filePath, filter);
+        } catch (IOException e) {
+            System.err.println("Error reading log file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void processLogFile(String filePath, Predicate<EntryInfo> filter) {
+        LogReader.filter = filter != null ? filter : info -> true;
+
+        entries.clear();
+        groups.clear();
+        activeEntriesMap.clear();
+
+        try {
             wpilogReader(filePath);
         } catch (IOException e) {
             System.err.println("Error reading log file: " + e.getMessage());
@@ -189,51 +215,51 @@ public class LogReader {
 
         if (type.equals("float[]")) {
             int count = payloadSize / 4;
+            double[] vals = new double[count];
             for (int i = 0; i < count; i++) {
-                float val = Float.intBitsToFloat(Integer.reverseBytes(dataInputStream.readInt()));
-                if (i < targets.size() && targets.get(i) != null) {
-                    targets.get(i).data.add(new EntryPoint((double) val, timestamp));
-                }
+                vals[i] = Float.intBitsToFloat(Integer.reverseBytes(dataInputStream.readInt()));
             }
-            int remainder = payloadSize % 4;
-            if (remainder > 0) dataInputStream.skipBytes(remainder);
+            skipRemainder(dataInputStream, payloadSize - count * 4);
+            addValue(targets, vals, timestamp);
 
         } else if (type.equals("double[]")) {
             int count = payloadSize / 8;
+            double[] vals = new double[count];
             for (int i = 0; i < count; i++) {
-                double val = Double.longBitsToDouble(Long.reverseBytes(dataInputStream.readLong()));
-                if (i < targets.size() && targets.get(i) != null) {
-                    targets.get(i).data.add(new EntryPoint(val, timestamp));
-                }
+                vals[i] = Double.longBitsToDouble(Long.reverseBytes(dataInputStream.readLong()));
             }
-            int remainder = payloadSize % 8;
-            if (remainder > 0) dataInputStream.skipBytes(remainder);
+            skipRemainder(dataInputStream, payloadSize - count * 8);
+            addValue(targets, vals, timestamp);
+
+        } else if (type.equals("int64[]")) {
+            int count = payloadSize / 8;
+            long[] vals = new long[count];
+            for (int i = 0; i < count; i++) {
+                vals[i] = Long.reverseBytes(dataInputStream.readLong());
+            }
+            skipRemainder(dataInputStream, payloadSize - count * 8);
+            addValue(targets, vals, timestamp);
 
         } else if (type.equals("boolean[]")) {
+            boolean[] vals = new boolean[payloadSize];
             for (int i = 0; i < payloadSize; i++) {
-                boolean val = dataInputStream.readByte() != 0;
-                if (i < targets.size() && targets.get(i) != null) {
-                    targets.get(i).data.add(new EntryPoint(val, timestamp));
-                }
+                vals[i] = dataInputStream.readByte() != 0;
             }
+            addValue(targets, vals, timestamp);
 
         } else if (type.equals("string[]")) {
-            int bytesRead = 0;
-            int i = 0;
-            while (bytesRead < payloadSize) {
+            int count = Integer.reverseBytes(dataInputStream.readInt());
+            String[] vals = new String[count];
+            int bytesRead = 4;
+            for (int i = 0; i < count; i++) {
                 int strLen = Integer.reverseBytes(dataInputStream.readInt());
-                bytesRead += 4;
-                
                 byte[] strBytes = new byte[strLen];
                 dataInputStream.readFully(strBytes);
-                bytesRead += strLen;
-                
-                String val = new String(strBytes, "UTF-8");
-                if (i < targets.size() && targets.get(i) != null) {
-                    targets.get(i).data.add(new EntryPoint(val, timestamp));
-                }
-                i++;
+                bytesRead += 4 + strLen;
+                vals[i] = new String(strBytes, "UTF-8");
             }
+            skipRemainder(dataInputStream, payloadSize - bytesRead);
+            addValue(targets, vals, timestamp);
         } else if (type.equals("float")) {
             if (payloadSize >= 4) {
                 float val = Float.intBitsToFloat(Integer.reverseBytes(dataInputStream.readInt()));
@@ -247,6 +273,16 @@ public class LogReader {
         } else if (type.equals("double")) {
             if (payloadSize >= 8) {
                 double val = Double.longBitsToDouble(Long.reverseBytes(dataInputStream.readLong()));
+                if (!targets.isEmpty() && targets.get(0) != null) {
+                    targets.get(0).data.add(new EntryPoint(val, timestamp));
+                }
+                if (payloadSize > 8) dataInputStream.skipBytes(payloadSize - 8);
+            } else {
+                dataInputStream.skipBytes(payloadSize);
+            }
+        } else if (type.equals("int64")) {
+            if (payloadSize >= 8) {
+                long val = Long.reverseBytes(dataInputStream.readLong());
                 if (!targets.isEmpty() && targets.get(0) != null) {
                     targets.get(0).data.add(new EntryPoint(val, timestamp));
                 }
@@ -275,6 +311,16 @@ public class LogReader {
         } else {
             dataInputStream.skipBytes(payloadSize);
         }
+    }
+
+    private static void addValue(List<Entry> targets, Object value, long timestamp) {
+        if (!targets.isEmpty() && targets.get(0) != null) {
+            targets.get(0).data.add(new EntryPoint(value, timestamp));
+        }
+    }
+
+    private static void skipRemainder(DataInputStream dataInputStream, int bytes) throws IOException {
+        if (bytes > 0) dataInputStream.skipBytes(bytes);
     }
 
     private static int readLittleEndianInt(DataInputStream dis, int bytes) throws IOException {
@@ -306,62 +352,23 @@ public class LogReader {
 
             List<Entry> targets = new ArrayList<>();
 
-            if (name.contains(":") && (type.equals("float[]") || type.equals("double[]") || type.equals("boolean[]") || type.equals("string[]"))) {
-                String cleanName = name;
-                if (cleanName.startsWith("Float/")) cleanName = cleanName.substring(6);
-                else if (cleanName.startsWith("Double/")) cleanName = cleanName.substring(7);
-                else if (cleanName.startsWith("Boolean/")) cleanName = cleanName.substring(8);
-                else if (cleanName.startsWith("String/")) cleanName = cleanName.substring(7);
-    
-                String[] groupsArr = cleanName.split("\\|");
-                String[] metaArr = metadata.split("\\|");
+            EntryInfo info = new EntryInfo(name, type, metadata);
 
-                for (int i = 0; i < groupsArr.length; i++) {
-                    String group = groupsArr[i];
-                    String currentMeta = (i < metaArr.length) ? metaArr[i].trim() : "";
-                    String[] parts = group.split(":");
+            if (filter.test(info) && !name.startsWith(REPLAY_PREFIX)) {
+                String fieldName = name;
+                String groupName = "";
 
-                    if (parts.length == 2) {
-                        String baseGroup = parts[0].trim();
-                        String[] fields = parts[1].split(",");
-                        String groupName = currentMeta.isEmpty() ? baseGroup : currentMeta + "/" + baseGroup;
-
-                        for (String field : fields) {
-                            String fieldName = field.trim();
-                            String entryName = baseGroup + "/" + field.trim();
-                            EntryInfo info = new EntryInfo(entryName, type.replace("[]", ""), currentMeta);
-                            
-                            if (filter.test(info)) {
-                                Entry newEntry = new Entry(groupName, fieldName);
-                                entries.add(newEntry);
-                                groups.computeIfAbsent(groupName, key -> new ArrayList<>()).add(newEntry);
-                                targets.add(newEntry);
-                            } else {
-                                targets.add(null);
-                            }
-                        }
-                    }
+                if (name.contains("/")) {
+                    fieldName = name.substring(name.lastIndexOf('/') + 1);
+                    groupName = name.substring(0, name.lastIndexOf('/'));
                 }
+
+                Entry newEntry = new Entry(groupName, fieldName);
+                entries.add(newEntry);
+                groups.computeIfAbsent(groupName, key -> new ArrayList<>()).add(newEntry);
+                targets.add(newEntry);
             } else {
-                EntryInfo info = new EntryInfo(name, type, metadata);
-
-                if (filter.test(info) && !metadata.contains("replay")) {
-                    String fieldName = name;
-                    String groupName = metadata.isEmpty() ? "" : metadata + "/"; 
-                
-                    if (name.contains("/")) {
-                        fieldName = name.substring(name.lastIndexOf('/') + 1);
-                        groupName += name.substring(0, name.lastIndexOf('/'));
-                    }
-
-                    Entry newEntry = new Entry(groupName, fieldName);
-                    entries.add(newEntry);
-
-                    groups.computeIfAbsent(groupName, key -> new ArrayList<>()).add(newEntry);
-                    targets.add(newEntry);
-                } else {
-                    targets.add(null);
-                }
+                targets.add(null);
             }
 
             activeEntriesMap.put(entryId, new ActiveLogData(type, targets));
