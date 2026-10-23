@@ -97,6 +97,8 @@ public final class LogTable {
   public void put(String name, boolean value);  // double[], boolean[], String[],
   public void put(String name, String value);   // and struct types such as Pose2d
   public <T> void put(String name, T value);
+  /** Writes this value on every loop even when unchanged (for values SysId pairs by index). */
+  public void recordEveryLoop(String name);
 }
 ```
 
@@ -245,10 +247,15 @@ and stop updating NT. Tunables are always published; they are not affected by co
 ### Consumers of the file format
 
 - `LogReader` — reads per-entry data. The grouped `"Float/..."` parsing is removed.
-- `SysidCommand` / `SysidApp` — find motors by entries whose `.type` is `"Motor"` under
-  `Telemetry/motors/<name>/` and read `Position`, `Velocity`, `Acceleration` and `Voltage`. The
-  samples are aligned by timestamp, which `Sysid` already does internally.
-- `LogReplay` — replays per-entry data through `Log.putData`.
+- `SysidCommand` / `SysidApp` — select entries under `Telemetry/motors/` and read each motor's
+  `Position`, `Velocity`, `Acceleration` and `Voltage`. Both `Sysid` classes pair these four
+  **by sample index**, not by time, which only works if all four have one sample per loop. WPILib
+  skips unchanged values, so a constant voltage during a dynamic test would drop samples and shift
+  the pairing. Therefore a motor writes these four values **every loop** (`LogTable.recordEveryLoop`,
+  which calls WPILib `keepDuplicates`) — the same amount of data as today's grouped array, which is
+  also appended every loop.
+- `LogReplay` — replays per-entry data through `Log.putData` under `replay/<original path>`;
+  `LogReader` skips entries under `Telemetry/replay/`.
 
 ## Migration
 
