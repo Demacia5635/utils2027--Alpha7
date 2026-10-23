@@ -151,7 +151,7 @@ public final class Alerts implements AutoCloseable {
     overflow = null;
   }
 
-  private void raiseOverflow(String ignoredMessage) {
+  private void raiseOverflow(String firstIgnoredMessage) {
     if (overflow == null) {
       overflow = new Entry(OVERFLOW_TITLE, Log.Severity.ERROR,
           "More than " + MESSAGE_LIMIT
@@ -161,9 +161,9 @@ public final class Alerts implements AutoCloseable {
       overflow.active = true;
       overflow.alert.set(true);
       fileLog.accept("[ALERT - ERROR] " + OVERFLOW_TITLE);
+      fileLog.accept("[Log.alert] message limit reached, ignoring: " + firstIgnoredMessage);
       showPopup(overflow);
     }
-    fileLog.accept("[Log.alert] message limit reached, ignoring: " + ignoredMessage);
   }
 
   private void showPopup(Entry entry) {

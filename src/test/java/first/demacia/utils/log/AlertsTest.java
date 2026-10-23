@@ -120,6 +120,22 @@ class AlertsTest {
   }
 
   @Test
+  void ignoredMessagesAfterLimitWriteOneFileLine() {
+    elasticReady();
+    for (int i = 0; i < 50; i++) {
+      alerts.alert("message " + i, true);
+    }
+    fileLines.clear();
+
+    for (int i = 50; i < 80; i++) {
+      alerts.alert("message " + i, true);
+    }
+
+    long limitLines = fileLines.stream().filter(l -> l.contains("limit reached")).count();
+    assertEquals(1, limitLines);
+  }
+
+  @Test
   void oneTimeAlertStaysActive() {
     elasticReady();
 
