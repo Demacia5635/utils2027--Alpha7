@@ -1,5 +1,6 @@
 package first.demacia.utils.log;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -143,6 +144,26 @@ class LoggedValuesTest {
     values.add("arm/angle", () -> 1.0, Log.Dashboard.DEBUG);
 
     assertTrue(debugPaths.contains("/arm/angle"));
+  }
+
+  @Test
+  void doubleArraySupplierIsLoggedAsArray() {
+    values.add("arm/pose", () -> new double[] {1.5, 2.5}, Log.Dashboard.ALWAYS);
+
+    values.update();
+
+    assertArrayEquals(new double[] {1.5, 2.5}, backend.getLastValue("/arm/pose", double[].class));
+  }
+
+  @Test
+  void longAndStringArraySuppliersAreLoggedAsArrays() {
+    values.add("arm/ids", () -> new long[] {4L, 5L}, Log.Dashboard.ALWAYS);
+    values.add("arm/names", () -> new String[] {"a", "b"}, Log.Dashboard.ALWAYS);
+
+    values.update();
+
+    assertArrayEquals(new long[] {4L, 5L}, backend.getLastValue("/arm/ids", long[].class));
+    assertArrayEquals(new String[] {"a", "b"}, backend.getLastValue("/arm/names", String[].class));
   }
 
   @Test

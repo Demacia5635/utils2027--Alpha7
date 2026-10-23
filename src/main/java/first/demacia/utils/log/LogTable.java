@@ -112,7 +112,23 @@ public final class LogTable {
    * @param value The value, or null to skip
    */
   public <T> void put(String name, T value) {
-    if (value != null) {
+    if (value == null) {
+      return;
+    }
+    // TelemetryTable's generic log has no array branch and would log value.toString()
+    if (value instanceof double[] array) {
+      table.log(name, array);
+    } else if (value instanceof float[] array) {
+      table.log(name, array);
+    } else if (value instanceof long[] array) {
+      table.log(name, array);
+    } else if (value instanceof int[] array) {
+      table.log(name, array);
+    } else if (value instanceof boolean[] array) {
+      table.log(name, array);
+    } else if (value instanceof String[] array) {
+      table.log(name, array);
+    } else {
       table.log(name, value);
     }
   }
