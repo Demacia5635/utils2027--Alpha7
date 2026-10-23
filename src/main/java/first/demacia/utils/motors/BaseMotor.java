@@ -27,6 +27,7 @@ public abstract class BaseMotor implements MotorInterface {
   protected Data<?> voltageSignal;
   protected Data<?> currentSignal;
   protected Data<?> closedLoopSPSignal;
+  private final boolean[] slotPublished = new boolean[3];
   protected Data<?> closedLoopErrorSignal;
 
   private double wantedValue;
@@ -112,6 +113,7 @@ public abstract class BaseMotor implements MotorInterface {
     }
     valueControlModeChooser.onChange(mode -> this.valueControlMode = mode);
 
+    slotPublished[0] = true;
     configPidFf(0);
     configMotionMagic();
   }
@@ -124,7 +126,10 @@ public abstract class BaseMotor implements MotorInterface {
     }
     this.slot = slot;
     changeMotorSlot(slot);
-    configPidFf(slot);
+    if (!slotPublished[slot]) {
+      slotPublished[slot] = true;
+      configPidFf(slot);
+    }
   }
 
   @Override
@@ -468,6 +473,7 @@ public abstract class BaseMotor implements MotorInterface {
   public void log(LogTable table) {
     table.put("Is Connected", isConnected());
     table.put("CloseLoopError", getCurrentClosedLoopError());
+    table.put("CloseLoopSP", getCurrentClosedLoopSP());
     table.put("Position", getCurrentPosition());
     table.put("Velocity", getCurrentVelocity());
     table.put("Acceleration", getCurrentAcceleration());
