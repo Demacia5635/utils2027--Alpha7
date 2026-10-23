@@ -1,7 +1,7 @@
 package first.demacia.utils.motors;
 
 import java.util.function.Supplier;
-import org.wpilib.telemetry.TelemetryLoggable;
+import first.demacia.utils.log.Loggable;
 
 
 /**
@@ -13,7 +13,7 @@ import org.wpilib.telemetry.TelemetryLoggable;
  * motor types.
  * </p>
  */
-public interface MotorInterface extends TelemetryLoggable {
+public interface MotorInterface extends Loggable {
 
   /** Enumeration of supported control modes */
   enum ControlMode {

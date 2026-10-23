@@ -6,17 +6,12 @@ import org.wpilib.math.util.MathUtil;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.RunCommand;
 import org.wpilib.command2.Command;
-import org.wpilib.command2.CommandScheduler;
-import org.wpilib.telemetry.TelemetryTable;
-import org.wpilib.tunable.ComplexTunable;
-import org.wpilib.tunable.Selectable;
-import org.wpilib.tunable.TunableTable;
-import org.wpilib.tunable.Tunables;
 
 import first.demacia.utils.Data;
 import first.demacia.utils.elastic.ElasticGenerator;
+import first.demacia.utils.log.Chooser;
 import first.demacia.utils.log.Log;
-import first.demacia.utils.log.Log.LogLevel;
+import first.demacia.utils.log.LogTable;
 import first.demacia.utils.motors.BaseMotorConfig.Canbus;
 import first.demacia.utils.sysid.Sysid;
 
@@ -41,7 +36,6 @@ public abstract class BaseMotor implements MotorInterface {
   private ControlMode controlMode = ControlMode.DISABLE;
 
   private ControlMode valueControlMode = ControlMode.DUTYCYCLE;
-  private Selectable<ControlMode> valueControlModeChooser = new Selectable<>();
 
   private boolean[] kFlags = { true, true, true, false, false, false };
 
@@ -60,8 +54,8 @@ public abstract class BaseMotor implements MotorInterface {
     setSignals();
     addLog();
     setName(name);
-    Log.publishTelemetry("motors/" + name, this);
-    Tunables.getTable("motors/" + name).publishDouble("test Value", this::getTestValue, this::setTestValue);
+    Log.putData("motors/" + name, this);
+    Log.tune("motors/" + name + "/test Value", this::getTestValue, this::setTestValue);
     Log.log(name + " motor initialized");
     ElasticGenerator.getInstance().registerMotor(this);
     Sysid.registerMotor(this);
@@ -104,26 +98,12 @@ public abstract class BaseMotor implements MotorInterface {
     return name;
   }
 
-  @SuppressWarnings({ "unchecked" })
   private void addLog() {
-    Log.putData(name + ": Position, Velocity, Acceleration, Voltage, Current, CloseLoopError, CloseLoopSP",
-        new Data[] {
-            positionSignal,
-            velocitySignal,
-            accelerationSignal,
-            voltageSignal,
-            closedLoopErrorSignal,
-            closedLoopSPSignal },
-        LogLevel.LOG_ONLY, "motors", false);
-
-    Log.putData("motors/" + name + "/wanted value", this::getWantedValue);
-    Log.putData("motors/" + name + "/current value", this::getCurrentValue);
-    Log.putData("motors/" + name + "/is Connected", this::isConnected);
-
-    Tunables.publish("motors/" + getName() + "/test value command",
+    Log.button("motors/" + getName() + "/test value command",
         new RunCommand(() -> applyControlModeValue(valueControlMode, testValue))
             .finallyDo(interrupted -> stop()));
 
+    Chooser<ControlMode> valueControlModeChooser = Log.chooser("motors/" + getName() + "/Value Control Mode Chooser");
     valueControlModeChooser.addDefault(ControlMode.DUTYCYCLE.name(), ControlMode.DUTYCYCLE);
     for (ControlMode mode : ControlMode.class.getEnumConstants()) {
       if (mode == ControlMode.DISABLE)
@@ -131,7 +111,6 @@ public abstract class BaseMotor implements MotorInterface {
       valueControlModeChooser.add(mode.name(), mode);
     }
     valueControlModeChooser.onChange(mode -> this.valueControlMode = mode);
-    Tunables.publish("motors/" + getName() + "/Value Control Mode Chooser", valueControlModeChooser);
 
     configPidFf(0);
     configMotionMagic();
@@ -400,41 +379,26 @@ public abstract class BaseMotor implements MotorInterface {
       applyPidFfConfigs(slot);
     }).ignoringDisable(true);
 
-    Tunables.publish("motors/" + getName() + "/PID+FF config slot " + slot, new ComplexTunable() {
-      @Override
-      public String getTunableType() {
-        return "PID+FF Config";
-      }
+    Log.tune("motors/" + getName() + "/PID+FF config slot " + slot, "PID+FF Config", t -> {
+      boolean[] flags = getSysidFlags();
 
-      @Override
-      public void publishTunable(TunableTable table) {
-        boolean[] flags = getSysidFlags();
+      t.number("KP", () -> config.pidFfParams[slot].kP(), (v) -> config.pidFfParams[slot].setKP(v));
+      t.number("KI", () -> config.pidFfParams[slot].kI(), (v) -> config.pidFfParams[slot].setKI(v));
+      t.number("KD", () -> config.pidFfParams[slot].kD(), (v) -> config.pidFfParams[slot].setKD(v));
+      t.flag("USE_KS", () -> flags[0], (v) -> flags[0] = v);
+      t.number("KS", () -> config.pidFfParams[slot].kS(), (v) -> config.pidFfParams[slot].setKS(v));
+      t.flag("USE_KV", () -> flags[1], (v) -> flags[1] = v);
+      t.number("KV", () -> config.pidFfParams[slot].kV(), (v) -> config.pidFfParams[slot].setKV(v));
+      t.flag("USE_KA", () -> flags[2], (v) -> flags[2] = v);
+      t.number("KA", () -> config.pidFfParams[slot].kA(), (v) -> config.pidFfParams[slot].setKA(v));
+      t.flag("USE_KG", () -> flags[3], (v) -> flags[3] = v);
+      t.number("KG", () -> config.pidFfParams[slot].kG(), (v) -> config.pidFfParams[slot].setKG(v));
+      t.flag("USE_KCOS", () -> flags[4], (v) -> flags[4] = v);
+      t.number("KCOS", () -> config.pidFfParams[slot].kCos(), (v) -> config.pidFfParams[slot].setKCos(v));
+      t.flag("USE_KV2", () -> flags[5], (v) -> flags[5] = v);
+      t.number("KV2", () -> config.pidFfParams[slot].kV2(), (v) -> config.pidFfParams[slot].setKV2(v));
 
-        table.publishDouble("KP", () -> config.pidFfParams[slot].kP(), (v) -> config.pidFfParams[slot].setKP(v));
-        table.publishDouble("KI", () -> config.pidFfParams[slot].kI(), (v) -> config.pidFfParams[slot].setKI(v));
-        table.publishDouble("KD", () -> config.pidFfParams[slot].kD(), (v) -> config.pidFfParams[slot].setKD(v));
-        table.publishBoolean("USE_KS", () -> flags[0], (v) -> flags[0] = v);
-        table.publishDouble("KS", () -> config.pidFfParams[slot].kS(), (v) -> config.pidFfParams[slot].setKS(v));
-        table.publishBoolean("USE_KV", () -> flags[1], (v) -> flags[1] = v);
-        table.publishDouble("KV", () -> config.pidFfParams[slot].kV(), (v) -> config.pidFfParams[slot].setKV(v));
-        table.publishBoolean("USE_KA", () -> flags[2], (v) -> flags[2] = v);
-        table.publishDouble("KA", () -> config.pidFfParams[slot].kA(), (v) -> config.pidFfParams[slot].setKA(v));
-        table.publishBoolean("USE_KG", () -> flags[3], (v) -> flags[3] = v);
-        table.publishDouble("KG", () -> config.pidFfParams[slot].kG(), (v) -> config.pidFfParams[slot].setKG(v));
-        table.publishBoolean("USE_KCOS", () -> flags[4], (v) -> flags[4] = v);
-        table.publishDouble("KCOS", () -> config.pidFfParams[slot].kCos(), (v) -> config.pidFfParams[slot].setKCos(v));
-        table.publishBoolean("USE_KV2", () -> flags[5], (v) -> flags[5] = v);
-        table.publishDouble("KV2", () -> config.pidFfParams[slot].kV2(), (v) -> config.pidFfParams[slot].setKV2(v));
-
-        table.publishBoolean("Update", () -> configPidFfCmd.isScheduled(),
-            value -> {
-              if (value && !configPidFfCmd.isScheduled()) {
-                CommandScheduler.getInstance().schedule(configPidFfCmd);
-              } else if (!value && configPidFfCmd.isScheduled()) {
-                configPidFfCmd.cancel();
-              }
-            });
-      }
+      t.button("Update", configPidFfCmd);
     });
   }
 
@@ -444,27 +408,11 @@ public abstract class BaseMotor implements MotorInterface {
   private void configMotionMagic() {
     Command configMotionMagicCmd = new InstantCommand(this::applyMotionMagicConfigs).ignoringDisable(true);
 
-    Tunables.publish("motors/" + getName() + "/Motion Magic Config", new ComplexTunable() {
-      @Override
-      public String getTunableType() {
-        return "Motion Magic Config";
-      }
-
-      @Override
-      public void publishTunable(TunableTable table) {
-        table.publishDouble("Vel", () -> config.maxVelocity, (maxVelocity) -> config.maxVelocity = maxVelocity);
-        table.publishDouble("Acc", () -> config.maxAcceleration,
-            (maxAcceleration) -> config.maxAcceleration = maxAcceleration);
-        table.publishDouble("Jerk", () -> config.maxJerk, (maxJerk) -> config.maxJerk = maxJerk);
-        table.publishBoolean("Update", () -> configMotionMagicCmd.isScheduled(),
-            value -> {
-              if (value && !configMotionMagicCmd.isScheduled()) {
-                CommandScheduler.getInstance().schedule(configMotionMagicCmd);
-              } else if (!value && configMotionMagicCmd.isScheduled()) {
-                configMotionMagicCmd.cancel();
-              }
-            });
-      }
+    Log.tune("motors/" + getName() + "/Motion Magic Config", "Motion Magic Config", t -> {
+      t.number("Vel", () -> config.maxVelocity, (maxVelocity) -> config.maxVelocity = maxVelocity);
+      t.number("Acc", () -> config.maxAcceleration, (maxAcceleration) -> config.maxAcceleration = maxAcceleration);
+      t.number("Jerk", () -> config.maxJerk, (maxJerk) -> config.maxJerk = maxJerk);
+      t.button("Update", configMotionMagicCmd);
     });
   }
 
@@ -517,24 +465,28 @@ public abstract class BaseMotor implements MotorInterface {
   }
 
   @Override
-  public void logTo(TelemetryTable table) {
-    table.log("Is Connected", isConnected());
-    table.log("CloseLoopError", getCurrentClosedLoopError());
-    table.log("Position", getCurrentPosition());
-    table.log("Velocity", getCurrentVelocity());
-    table.log("Acceleration", getCurrentAcceleration());
-    table.log("Voltage", getCurrentVoltage());
-    table.log("Current", getCurrentCurrent());
+  public void log(LogTable table) {
+    table.put("Is Connected", isConnected());
+    table.put("CloseLoopError", getCurrentClosedLoopError());
+    table.put("Position", getCurrentPosition());
+    table.put("Velocity", getCurrentVelocity());
+    table.put("Acceleration", getCurrentAcceleration());
+    table.put("Voltage", getCurrentVoltage());
+    table.put("Current", getCurrentCurrent());
     if (isRadiansMotor()) {
-      table.log("Angle", getCurrentAngle());
+      table.put("Angle", getCurrentAngle());
     }
-    table.log("Value", getCurrentValue());
-    table.log("ControlMode", getCurrentControlModeInteger());
-    table.log("Wanted Value", getWantedValue());
+    table.put("Value", getCurrentValue());
+    table.put("ControlMode", (long) getCurrentControlModeInteger());
+    table.put("Wanted Value", getWantedValue());
+    table.recordEveryLoop("Position");
+    table.recordEveryLoop("Velocity");
+    table.recordEveryLoop("Acceleration");
+    table.recordEveryLoop("Voltage");
   }
 
   @Override
-  public String getTelemetryType() {
+  public String logType() {
     return "Motor";
   }
 
