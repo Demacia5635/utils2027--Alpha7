@@ -31,7 +31,8 @@ public class Robot extends TimedRobot {
     Chassis.initialize(RobotChassisConstants.CHASSIS_CONFIG);
     Log.button("publish", new DriveCommand(Chassis.getInstance(), controller));
     Log.button("DRIVE COMMAND", new DriveCommand(Chassis.getInstance(), controller));
-    
+    new LogDemo(); // checks the log infrastructure in simulation; remove when done
+
     // new TalonFXMotor(new TalonFXConfig("motor", 30, Canbus.Rio));
     // configureBindings();
     // setDefaultCommands();
