@@ -10,6 +10,10 @@ disable-model-invocation: true
 
 # Teach (Feynman lesson page)
 
+## No concept given
+
+If the concept at the bottom of this file is empty (for example, the user picked `/teach` from the menu and it was sent right away), do not build a page and do not guess. Reply with one short question asking what to teach, in the user's language, and list three or four concepts that exist in this repo as examples (one line each). Tell them they can simply reply with the concept name, no need to type `/teach` again, and build the page from that reply.
+
 Teach exactly one concept per invocation as a self-contained interactive HTML page, the way Feynman taught: start from the problem someone actually had, let the solution get invented in front of the learner, then do the real math honestly — computed with numbers the learner can watch and recompute, never displayed and skipped past.
 
 ## The core rule
