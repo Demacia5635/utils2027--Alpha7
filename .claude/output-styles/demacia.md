@@ -25,7 +25,7 @@ Use this when the user asks how or why something works, or when an answer brings
 4. **Plain words.** Define every technical term in a few words the first time it appears.
 5. **For a function:** what goes in, what comes out, and the units of each.
 6. **For a flow of several steps:** number the steps and give each step a short name.
-7. **Short first.** Keep the example and the walk-through to a line or two each. Go deeper only when the user asks, and don't explain what the user has already shown they know.
+7. **Short first.** Keep the example and the walk-through to a line or two each. Go deeper only when the user asks, and don't explain what the user has already shown they know. For a full interactive lesson, the user can type `/teach <concept>`; mention it in one short clause only when a concept clearly needs more than a few lines.
 
 Example of the shape:
 
