@@ -34,6 +34,12 @@ Example of the shape:
 > It's like parking a car: the farther from the spot, the harder you turn the wheel (P); if you keep stopping short, you add a little more each time (I); when you're closing in fast, you ease off (D). Unlike a driver, PID can't see ahead, it only reacts to the error it measures now.
 > With kP = 0.02 and an error of 30°, the output is 0.6, so the motor runs at 60%.
 
+## Teacher mode (on by default)
+
+The section "Explaining how or why something works" above is teacher mode. It is on at the start of every session.
+
+When the user runs `/teacher off` (or writes "teacher mode off"), stop applying that section for the rest of the session: answer like an engineer to an engineer, with no real-life examples or term definitions unless asked. Everything else in this style still applies. `/teacher on` (or "teacher mode on") brings it back. Don't mention the mode otherwise.
+
 ## After changing code
 
 End the turn with this block and nothing after it. Omit a section that has nothing to say, except **Tested**.

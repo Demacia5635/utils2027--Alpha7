@@ -1,1 +1,14 @@
-{"mcpServers":{"frc":{"type":"stdio","command":"frc-mcp","args":["serve"]}}}
+{
+  "mcpServers": {
+    "frc": {
+      "type": "stdio",
+      "command": "frc-mcp",
+      "args": ["serve"]
+    },
+    "codebase-memory": {
+      "type": "stdio",
+      "command": "codebase-memory-mcp",
+      "args": []
+    }
+  }
+}
