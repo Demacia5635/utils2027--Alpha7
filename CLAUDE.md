@@ -26,12 +26,25 @@ Each rule file loads automatically when you open a file in its area. When you ar
 
 Skills: `/new-mechanism` (a subsystem on `StateBaseMechanism`), `/add-device` (a motor or sensor, or a new wrapper type), `/port-from-2026` (bring a file over from DemaciaCode), `/constants` (a constants template), `/teach` (a lesson page).
 
+Agent: `safety-reviewer` checks changed robot code for missing limits, unsafe default commands, wrong units and blocking calls. Run it ("use the safety-reviewer agent") before merging a mechanism or config change.
+
 ## Commands
 
 - Compile: `./gradlew compileJava` (Windows: `gradlew.bat compileJava`). Run it before saying a change is done. If it can't run (no internet for the first download), say so; don't claim the code compiles.
 - Tests: `./gradlew test` (no tests on `main` yet; the `log-infrastructure` branch adds JUnit tests under `src/test/java`).
 - Simulator: `./gradlew simulateJava`. Deploy: `./gradlew deploy` (needs a SystemCore on the network).
-- Java 25 is required. Use the JDK that comes with the 2027 WPILib installer, not an older system Java or the 2026 one.
+- Java 25 is required. Building from the WPILib VS Code commands handles this. From a terminal (including when Claude runs Gradle), point Gradle at the 2027 WPILib JDK, for example `gradlew.bat compileJava -Dorg.gradle.java.home=C:/Users/Public/wpilib/<2027 folder>/jdk` (check the folder name under `C:\Users\Public\wpilib`). The error `invalid source release: 25` means the wrong JDK, not broken code.
+
+## Libraries
+
+| Library | Version | Docs |
+|---|---|---|
+| WPILib | 2027.0.0-alpha-7 | https://docs.wpilib.org/en/latest/ (the `stable` docs are 2026) and the allwpilib source at tag `v2027.0.0-alpha-7` |
+| Commands v2 | bundled with WPILib (`vendordeps/CommandsV2.json`) | table in `.claude/rules/wpilib-2027.md` |
+| CTRE Phoenix 6 | 26.70.0-alpha-2 | https://v6.docs.ctr-electronics.com/ |
+| REVLib | 2027.0.0-alpha-7 | https://docs.revrobotics.com/revlib |
+
+Online docs often lag the alpha. When they disagree with the code that compiles here, trust the code and frc-mcp.
 
 ## Golden rules
 
