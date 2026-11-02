@@ -15,8 +15,8 @@ If the request at the bottom of this file is empty, do not create anything. Ask 
 
 ## Learn this repo first
 
-1. Read the motor config base class (`BaseMotorConfig.java`) and the config class of each controller you will use (`TalonFXConfig`, `SparkMaxConfig`, `SparkFlexConfig`, `TalonSRXConfig`), plus each sensor config (`LimitSwitchConfig`, `CancoderConfig`, ...). Use only constructors and `with...` methods that exist here, with their real parameter order. The package may be `frc.demacia.utils` (2026) or `first.demacia` / `org.wpilib` (2027): copy the imports from this repo, never from memory.
-2. Read two or three existing `*Constants.java` files under the robot code (for example `intake/IntakeConstants.java`) and follow their layout and naming.
+1. Read the motor config base class (`BaseMotorConfig.java`) and the config class of each controller you will use (`TalonFXConfig`, `SparkMaxConfig`, `SparkFlexConfig`, and `TalonSRXConfig` in 2026), plus each sensor config (`LimitSwitchConfig`, `CancoderConfig`, ...). Use only constructors and `with...` methods that exist here, with their real parameter order. The package may be `frc.demacia.utils` (2026) or `first.demacia` / `org.wpilib` (2027): copy the imports from this repo, never from memory.
+2. Read two or three existing `*Constants.java` files under the robot code (for example `robot/chassis/RobotChassisConstants.java`) and follow their layout and naming.
 3. Collect every CAN ID and DIO channel already used in the repo's constants, so the new file doesn't collide.
 
 ## File layout
@@ -30,8 +30,8 @@ public class ElevatorConstants {
     public static final String NAME = "Elevator";
     public static final Canbus CANBUS = Canbus.Rio; // TODO: Rio or CANIvore
 
-    // CAN IDs already used in this repo: 20, 30, 33, 34, 40, 41, 50, 51
-    // DIO channels already used: 5, 8, 9
+    // CAN IDs already used in this repo: <list from step 3>
+    // DIO channels already used: <list from step 3>
 ```
 
 One block per motor, prefixed with the motor's name, every value its own constant with its unit in a comment:
@@ -54,15 +54,17 @@ One block per motor, prefixed with the motor's name, every value its own constan
     public static final double LIFT_KV = 0;
     public static final double LIFT_KA = 0;
     public static final double LIFT_KG = 0;
+    public static final double LIFT_KSIN = 0;                     // arm gravity term (rotating arms only)
+    public static final double LIFT_KV2 = 0;
 
     // Motion profile (position control only)
     public static final double LIFT_MAX_VELOCITY = 0;             // TODO: m/s or rad/s
     public static final double LIFT_MAX_ACCELERATION = 0;         // TODO
     public static final double LIFT_MAX_JERK = 0;                 // TODO
 
-    public static final TalonFXConfig LIFT_CONFIG = new TalonFXConfig(LIFT_ID, CANBUS, LIFT_NAME)
+    public static final TalonFXConfig LIFT_CONFIG = new TalonFXConfig(LIFT_NAME, LIFT_ID, CANBUS)
             .withMeterMotor(LIFT_GEAR_RATIO, LIFT_PULLEY_DIAMETER)
-            .withPID(LIFT_KP, LIFT_KI, LIFT_KD, LIFT_KS, LIFT_KV, LIFT_KA, LIFT_KG)
+            .withPID(LIFT_KP, LIFT_KI, LIFT_KD, LIFT_KS, LIFT_KV, LIFT_KA, LIFT_KG, LIFT_KSIN, LIFT_KV2)
             .withMotionParam(LIFT_MAX_VELOCITY, LIFT_MAX_ACCELERATION, LIFT_MAX_JERK)
             .withBrake(LIFT_BRAKE)
             .withInvert(LIFT_INVERTED)
@@ -77,7 +79,7 @@ Then, as needed:
 
 - **Sensors:** a block per sensor (`<NAME>_CHANNEL` or `<NAME>_ID`, `<NAME>_NAME`, then its config object). CANcoder offset as its own constant in radians.
 - **Positions and limits:** `MIN_...`, `MAX_...`, setpoints and `ALLOWED_ERROR`, in radians or meters. Write angles as `Math.toRadians(0) // TODO: degrees`.
-- **States:** an enum `<Mechanism>State` whose fields are what each state commands (duty, velocity or position), following `IntakeConstants.IntakeState`. Always include `IDLE` and `TESTING`.
+- **States:** an enum `<Mechanism>State` whose fields are what each state commands (duty, velocity or position), implementing `StateBaseMechanism.MechanismState`. Don't add `IDLE` or `TESTING`: `StateBaseMechanism` adds both itself.
 
 ## Placeholder rules
 

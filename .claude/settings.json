@@ -1,3 +1,37 @@
 {
-  "outputStyle": "Demacia"
+  "outputStyle": "Demacia",
+  "enabledMcpjsonServers": ["frc", "codebase-memory"],
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew compileJava:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(gradlew.bat compileJava:*)",
+      "Bash(gradlew.bat build:*)",
+      "Bash(gradlew.bat test:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "mcp__frc",
+      "mcp__codebase-memory__index_repository",
+      "mcp__codebase-memory__index_status",
+      "mcp__codebase-memory__list_projects",
+      "mcp__codebase-memory__check_index_coverage",
+      "mcp__codebase-memory__search_graph",
+      "mcp__codebase-memory__trace_path",
+      "mcp__codebase-memory__detect_changes",
+      "mcp__codebase-memory__query_graph",
+      "mcp__codebase-memory__get_graph_schema",
+      "mcp__codebase-memory__get_code_snippet",
+      "mcp__codebase-memory__get_file_outline",
+      "mcp__codebase-memory__get_architecture",
+      "mcp__codebase-memory__search_code"
+    ],
+    "deny": [
+      "Bash(./gradlew deploy:*)",
+      "Bash(gradlew.bat deploy:*)"
+    ]
+  }
 }
