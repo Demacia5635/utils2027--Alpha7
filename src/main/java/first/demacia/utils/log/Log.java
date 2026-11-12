@@ -7,6 +7,11 @@ package first.demacia.utils.log;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import org.wpilib.networktables.NetworkTable;
@@ -21,8 +26,10 @@ import org.wpilib.util.Alert.Level;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.telemetry.TelemetryLoggable;
 import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.TunableTable;
 import org.wpilib.tunable.Tunables;
 import org.wpilib.tunable.TunableBoolean;
+import org.wpilib.util.function.BooleanConsumer;
 import org.wpilib.command2.button.Trigger;
 
 import first.demacia.utils.Data;
@@ -246,6 +253,84 @@ public class Log extends SubsystemBase {
   }
     public static void putData(String key, ComplexTunable tunable) {
     Tunables.publish(key, tunable);
+  }
+
+  /**
+   * Logs a double and makes it editable from the dashboard.
+   * <p>
+   * The 2027 replacement for the 2026 {@code builder.addDoubleProperty(name, getter, setter)}
+   * in {@code initSendable}. The getter is logged like {@link #putData(String, Supplier)}
+   * and the getter and setter are published as a Tunable at the same path.
+   * </p>
+   *
+   * @param name   The log entry name and Tunable path
+   * @param getter Reads the current value
+   * @param setter Applies a value edited on the dashboard
+   * @return The created LogEntry
+   */
+  public static LogEntry<Double> putData(String name, DoubleSupplier getter, DoubleConsumer setter) {
+    Objects.requireNonNull(getter, "getter");
+    Objects.requireNonNull(setter, "setter");
+    Tunables.publishDouble(name, getter, setter);
+    return putData(name, (Supplier<Double>) getter::getAsDouble);
+  }
+
+  /**
+   * Logs a boolean and makes it editable from the dashboard.
+   * <p>
+   * The 2027 replacement for the 2026 {@code builder.addBooleanProperty(name, getter, setter)}
+   * in {@code initSendable}. The getter is logged like {@link #putData(String, Supplier)}
+   * and the getter and setter are published as a Tunable at the same path.
+   * </p>
+   *
+   * @param name   The log entry name and Tunable path
+   * @param getter Reads the current value
+   * @param setter Applies a value edited on the dashboard
+   * @return The created LogEntry
+   */
+  public static LogEntry<Boolean> putData(String name, BooleanSupplier getter, BooleanConsumer setter) {
+    Objects.requireNonNull(getter, "getter");
+    Objects.requireNonNull(setter, "setter");
+    Tunables.publishBoolean(name, getter, setter);
+    return putData(name, (Supplier<Boolean>) getter::getAsBoolean);
+  }
+
+  /**
+   * Publishes a group of editable values without writing a {@link ComplexTunable} class.
+   * <p>
+   * The 2027 replacement for overriding {@code initSendable} in 2026: the values are added
+   * with a {@link TunableBuilder} instead of a {@code SendableBuilder}. Every double and
+   * boolean property is also logged at {@code name/<property>}.
+   * </p>
+   *
+   * <pre>{@code
+   * Log.putData("motors/arm/Motion Magic", "Motion Magic Config", builder -> builder
+   *     .addDoubleProperty("Vel", () -> config.maxVelocity, v -> config.maxVelocity = v)
+   *     .addDoubleProperty("Acc", () -> config.maxAcceleration, v -> config.maxAcceleration = v)
+   *     .addCommand("Update", applyCommand));
+   * }</pre>
+   *
+   * @param name The Tunable path of the group
+   * @param type The widget type shown on the dashboard
+   * @param init Adds the group's values
+   */
+  public static void putData(String name, String type, Consumer<TunableBuilder> init) {
+    Objects.requireNonNull(init, "init");
+    putData(name, new ComplexTunable() {
+      /** The getters are logged only once, even if the group is published to more than one backend */
+      private boolean logged = false;
+
+      @Override
+      public String getTunableType() {
+        return type;
+      }
+
+      @Override
+      public void publishTunable(TunableTable table) {
+        init.accept(new TunableBuilder(table, name, !logged));
+        logged = true;
+      }
+    });
   }
 
   /**
