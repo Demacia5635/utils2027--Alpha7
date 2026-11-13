@@ -24,7 +24,7 @@ Each rule file loads automatically when you open a file in its area. When you ar
 | LEDs, `LookUpTable`, `RobotCommon` | `demacia/utils/leds`, `demacia/utils/*.java` | `.claude/rules/utilities.md` |
 | Test robot | `robot` | `.claude/rules/robot.md` |
 
-Skills: `/new-mechanism` (a subsystem on `StateBaseMechanism`), `/add-device` (a motor or sensor, or a new wrapper type), `/port-from-2026` (bring a file over from DemaciaCode), `/constants` (a constants template), `/teach` (a lesson page), `/safety` (runs the `safety-reviewer` agent on this branch's changes), `/teacher on|off` (teacher mode), `/cr [branch|PR|folder]` (code review in the mentors' style).
+Skills: `/new-mechanism` (a subsystem on `StateBaseMechanism`), `/add-device` (a motor or sensor, or a new wrapper type), `/port-from-2026` (bring a file over from DemaciaCode), `/constants` (a constants template), `/teach` (a lesson page), `/safety` (runs the `safety-reviewer` agent on this branch's changes), `/teacher on|off` (teacher mode), `/cr [branch|PR|folder]` (code review in the mentors' style), `/check-releases` (is there a newer WPILib 2027 or vendordep, and should we update).
 
 Agent: `safety-reviewer` checks changed robot code for missing limits, unsafe default commands, wrong units and blocking calls. Run `/safety` before merging a mechanism or config change.
 
@@ -57,6 +57,12 @@ Online docs often lag the alpha. When they disagree with the code that compiles 
 7. **Dashboard and log through `Log`** (`first.demacia.utils.log.Log`): `Log.putData` for values, `Log.publishTelemetry` for read-only objects, `Tunables` for anything the dashboard edits. No `System.out.println` for telemetry.
 8. **Library stays game-free.** `first.demacia` must not import `first.robot`. Field positions, game pieces and season names belong in `first.robot`. (The 2026 hub tag offsets in `vision/VisionConstants.java` are an existing exception; don't add more.)
 9. **Match the surrounding file.** Indentation is 2 spaces in some files and 4 in others; keep each file's style. Public library methods get Javadoc. Code and comments in English.
+
+## Hooks (`.claude/settings.json`)
+
+- **After every Java edit** `.claude/hooks/check-java.sh` checks the lines that differ from the last commit for: merge conflict markers, `edu.wpi.first` imports (wrong year), `frc.demacia` (the 2026 library package), `SmartDashboard`/`Sendable`, `Thread.sleep`/`Timer.delay`, and motor commands inside `periodic()`. When it reports a problem, fix it, or tell the user why the finding is wrong. A line that really needs one of these (for example a sleep on its own thread) ends with `// hook-ok: <reason>`.
+- **Compile when Claude finishes** (`.claude/hooks/compile-on-stop.sh`): off by default. Turn it on per computer with `{ "env": { "DEMACIA_COMPILE_ON_STOP": "1" } }` in `.claude/settings.local.json`.
+- On Windows the hooks run in Git Bash, which comes with Git for Windows. See `docs/ai/SETUP-WINDOWS.md`.
 
 ## Known issues: check before relying on these
 

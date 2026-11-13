@@ -35,11 +35,24 @@ Nothing is sent anywhere: indexing and queries run on your computer.
 
 In VS Code: Extensions → install **Markdown Preview Mermaid Support** (`bierner.markdown-mermaid`). VS Code also suggests it when you open the repo. Then open `docs/ai/ARCHITECTURE.md` and press `Ctrl+Shift+V`.
 
-## 4. Check in Claude Code
+## 4. Git for Windows (for the hooks)
+
+The repo's hooks (`.claude/hooks/`) run in Git Bash, which comes with [Git for Windows](https://git-scm.com/downloads/win). If VS Code's Source Control works, you most likely have it. Check in PowerShell: `Test-Path "C:\Program Files\Git\bin\bash.exe"` should print `True`. Without it, every edit shows a "hook error" line in Claude Code; install Git for Windows and restart VS Code.
+
+Optional: to have Claude compile after every turn that changed Java, create `.claude/settings.local.json` (it is not committed) with:
+
+```json
+{ "env": { "DEMACIA_COMPILE_ON_STOP": "1" } }
+```
+
+It finds the JDK in `C:\Users\Public\wpilib\2027...\jdk`. If yours is elsewhere, add `"DEMACIA_JAVA_HOME": "C:/path/to/jdk"` to the same `env`. Each compile takes a few seconds (the first one longer), which is why it's off by default.
+
+## 5. Check in Claude Code
 
 1. Restart VS Code (so it sees the new PATH).
 2. In the Claude Code panel type `/mcp`. You should see `frc` and `codebase-memory`, both connected.
 3. The first time, ask Claude: "index this repo with codebase-memory". After that it stays up to date while Claude is open.
+4. Type `/hooks`. You should see the `PostToolUse` and `Stop` hooks from `.claude/settings.json`.
 
 ## Troubleshooting
 

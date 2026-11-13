@@ -33,5 +33,30 @@
       "Bash(./gradlew deploy:*)",
       "Bash(gradlew.bat deploy:*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/check-java.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/compile-on-stop.sh\"",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
   }
 }
