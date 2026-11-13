@@ -24,7 +24,7 @@ Each rule file loads automatically when you open a file in its area. When you ar
 | LEDs, `LookUpTable`, `RobotCommon` | `demacia/utils/leds`, `demacia/utils/*.java` | `.claude/rules/utilities.md` |
 | Test robot | `robot` | `.claude/rules/robot.md` |
 
-Skills: `/new-mechanism` (a subsystem on `StateBaseMechanism`), `/add-device` (a motor or sensor, or a new wrapper type), `/port-from-2026` (bring a file over from DemaciaCode), `/constants` (a constants template), `/teach` (a lesson page), `/safety` (runs the `safety-reviewer` agent on this branch's changes), `/teacher on|off` (teacher mode).
+Skills: `/new-mechanism` (a subsystem on `StateBaseMechanism`), `/add-device` (a motor or sensor, or a new wrapper type), `/port-from-2026` (bring a file over from DemaciaCode), `/constants` (a constants template), `/teach` (a lesson page), `/safety` (runs the `safety-reviewer` agent on this branch's changes), `/teacher on|off` (teacher mode), `/cr [branch|PR|folder]` (code review in the mentors' style).
 
 Agent: `safety-reviewer` checks changed robot code for missing limits, unsafe default commands, wrong units and blocking calls. Run `/safety` before merging a mechanism or config change.
 
