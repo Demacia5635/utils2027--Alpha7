@@ -35,7 +35,7 @@ Go through every item. Each comment must point to a real line; skip an item when
 - `setPower` / `setDuty` / voltage methods have some limit that stops before the mechanism reaches its physical end (limit switch, angle limit, current).
 - Every `move` / position method checks that the target was reached or the end was hit, instead of running forever.
 - **The mechanism doesn't move before it is calibrated.** Calibration (or a reset) happens at a known point, and the encoder is set to the real angle at that point, **not automatically 0**. Ask: when exactly is the reset done, and to which angle? Where 0 is must be a deliberate, written choice (the Gripper CR asked for 0 in the middle of the motion).
-- Motors are commanded from **one place only**. A `periodic()` that sets motors while a command also sets them is a must-fix.
+- **Motors are set only from commands, never from a subsystem's `periodic()`.** `periodic()` may read sensors, update state and telemetry, nothing that moves hardware. Any `set...`/`setVoltage`/`setDuty`/`setPosition`/`stop` call reachable from `periodic()` is a must-fix (move it into the command, or into the `TESTING` state). Also, one motor is driven by one command at a time (`addRequirements`).
 - A command that moves a subsystem calls `addRequirements` for it (including the chassis).
 - Doubles are compared with a tolerance (`Math.abs(a - b) < ALLOWED_ERROR`), never `==` / `!=`.
 - Limits are the mechanism's real range, not a guess like ±90°.
@@ -109,7 +109,7 @@ Good
 - "Rename `kraken1Pitch` / `kraken2Roll`: the motors don't move those axes one each (it's a differential), and the name shouldn't be the motor type. Use names by role."
 - "`IS_BRAKE_LIMIT_SWITCH`: a limit switch has no brake mode. Delete it."
 - "`setPower` has no limit, so the gripper can drive into its end. Stop at the limit switch or the angle limit."
-- "`periodic()` sets the motors from the dashboard and the command also sets them. Motors are commanded from one place only."
+- "`periodic()` sets the motors from the dashboard and the command also sets them. Motors are set only from commands, never from `periodic()`."
 - "Nothing stops the mechanism from moving before calibration."
 - "Angles aren't necessarily ±90°. Use the measured limits from the constants."
 - "`getActualRollDeg`: check the calculation; maybe `getMotor1Position` and `getMotor2Position` are swapped."
